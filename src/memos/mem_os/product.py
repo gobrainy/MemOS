@@ -1102,7 +1102,7 @@ class MOSProduct(MOSCore):
         mem_cube_id: str | None = None,
         source: str | None = None,
         user_profile: bool = False,
-    ):
+    ) -> list[str]:
         """Add memory for a specific user."""
 
         # Load user cubes if not already loaded
@@ -1117,7 +1117,8 @@ class MOSProduct(MOSCore):
                     mem_cube_id
                 ].text_mem.internet_retriever.retrieve_from_internet(query=user_interests, top_k=5)
                 for memory in user_profile_memories:
-                    self.mem_cubes[mem_cube_id].text_mem.add(memory)
+                    additional_ids = self.mem_cubes[mem_cube_id].text_mem.add(memory)
+                    result.extend(additional_ids)
             except Exception as e:
                 logger.error(
                     f"Failed to retrieve user profile: {e}, memory_content: {memory_content}"

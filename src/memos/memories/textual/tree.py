@@ -61,13 +61,10 @@ class TreeTextMemory(BaseTextMemory):
         """Add memories.
         Args:
             memories: List of TextualMemoryItem objects or dictionaries to add.
-        Later:
-            memory_items = [TextualMemoryItem(**m) if isinstance(m, dict) else m for m in memories]
-            metadata = extract_metadata(memory_items, self.extractor_llm)
-            plan = plan_memory_operations(memory_items, metadata, self.graph_store)
-            execute_plan(memory_items, metadata, plan, self.graph_store)
         """
-        return self.memory_manager.add(memories)
+        # Convert any dictionaries to TextualMemoryItem objects
+        memory_items = [TextualMemoryItem(**m) if isinstance(m, dict) else m for m in memories]
+        return self.memory_manager.add(memory_items)
 
     def replace_working_memory(self, memories: list[TextualMemoryItem]) -> None:
         self.memory_manager.replace_working_memory(memories)
