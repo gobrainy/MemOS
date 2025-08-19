@@ -93,6 +93,7 @@ class TreeTextMemory(BaseTextMemory):
         mode: str = "fast",
         memory_type: str = "All",
         manual_close_internet: bool = False,
+        moscube: bool = False,
     ) -> list[TextualMemoryItem]:
         """Search for memories based on a query.
         User query -> TaskGoalParser -> MemoryPathResolver ->
@@ -119,6 +120,7 @@ class TreeTextMemory(BaseTextMemory):
                 self.graph_store,
                 self.embedder,
                 internet_retriever=None,
+                moscube=moscube,
             )
         else:
             searcher = Searcher(
@@ -126,6 +128,7 @@ class TreeTextMemory(BaseTextMemory):
                 self.graph_store,
                 self.embedder,
                 internet_retriever=self.internet_retriever,
+                moscube=moscube,
             )
         return searcher.search(query, top_k, info, mode, memory_type)
 
