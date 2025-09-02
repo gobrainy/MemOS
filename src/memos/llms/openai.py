@@ -21,14 +21,27 @@ class OpenAILLM(BaseLLM):
 
     def generate(self, messages: MessageList) -> str:
         """Generate a response from OpenAI LLM."""
-        response = self.client.chat.completions.create(
-            model=self.config.model_name_or_path,
-            messages=messages,
-            extra_body=self.config.extra_body,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-            top_p=self.config.top_p,
-        )
+        model_name = self.config.model_name_or_path
+        is_gpt5_family = model_name.startswith("gpt-5")
+        # Build kwargs conditionally to support gpt-5* models requiring max_completion_tokens
+        create_kwargs = {
+            "model": model_name,
+            "messages": messages,
+            "extra_body": self.config.extra_body,
+            "temperature": self.config.temperature,
+            "top_p": self.config.top_p,
+        }
+        if is_gpt5_family:
+            # Use explicit max_completion_tokens if provided; otherwise fallback to max_tokens
+            max_comp = getattr(self.config, "max_completion_tokens", None)
+            if max_comp is None:
+                max_comp = getattr(self.config, "max_tokens", None)
+            if max_comp is not None:
+                create_kwargs["max_completion_tokens"] = max_comp
+        else:
+            create_kwargs["max_tokens"] = self.config.max_tokens
+
+        response = self.client.chat.completions.create(**create_kwargs)
         logger.info(f"Response from OpenAI: {response.model_dump_json()}")
         response_content = response.choices[0].message.content
         if self.config.remove_think_prefix:
@@ -38,15 +51,26 @@ class OpenAILLM(BaseLLM):
 
     def generate_stream(self, messages: MessageList, **kwargs) -> Generator[str, None, None]:
         """Stream response from OpenAI LLM with optional reasoning support."""
-        response = self.client.chat.completions.create(
-            model=self.config.model_name_or_path,
-            messages=messages,
-            stream=True,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-            top_p=self.config.top_p,
-            extra_body=self.config.extra_body,
-        )
+        model_name = self.config.model_name_or_path
+        is_gpt5_family = model_name.startswith("gpt-5")
+        create_kwargs = {
+            "model": model_name,
+            "messages": messages,
+            "stream": True,
+            "temperature": self.config.temperature,
+            "top_p": self.config.top_p,
+            "extra_body": self.config.extra_body,
+        }
+        if is_gpt5_family:
+            max_comp = getattr(self.config, "max_completion_tokens", None)
+            if max_comp is None:
+                max_comp = getattr(self.config, "max_tokens", None)
+            if max_comp is not None:
+                create_kwargs["max_completion_tokens"] = max_comp
+        else:
+            create_kwargs["max_tokens"] = self.config.max_tokens
+
+        response = self.client.chat.completions.create(**create_kwargs)
 
         reasoning_started = False
 

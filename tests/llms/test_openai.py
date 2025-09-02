@@ -23,6 +23,7 @@ class TestLLMFactoryWithOpenAIBackend(unittest.TestCase):
                     "model_name_or_path": "gpt-4.1-nano",
                     "temperature": 0.8,
                     "max_tokens": 1024,
+                    "max_completion_tokens": None,
                     "top_p": 0.9,
                     "top_k": 50,
                     "api_key": "sk-xxxx",
@@ -41,6 +42,78 @@ class TestLLMFactoryWithOpenAIBackend(unittest.TestCase):
             response,
             "Hello! I'm an AI language model created by OpenAI. I'm here to help answer questions, provide information, and assist with a wide range of topics. How can I assist you today?",
         )
+
+    def test_llm_factory_with_openai_backend_gpt5_uses_max_completion_tokens(self):
+        """For gpt-5 models, ensure max_completion_tokens is passed instead of max_tokens."""
+        mock_chat_completions_create = MagicMock()
+        mock_response = MagicMock()
+        mock_response.model_dump_json.return_value = '{}'
+        mock_response.choices[0].message.content = "ok"  # type: ignore[index]
+        mock_chat_completions_create.return_value = mock_response
+
+        config = LLMConfigFactory.model_validate(
+            {
+                "backend": "openai",
+                "config": {
+                    "model_name_or_path": "gpt-5-mini",
+                    "temperature": 0.8,
+                    "max_tokens": 1024,  # legacy present, but should not be sent
+                    "max_completion_tokens": 321,
+                    "top_p": 0.9,
+                    "top_k": 50,
+                    "api_key": "sk-xxxx",
+                    "api_base": "https://api.openai.com/v1",
+                },
+            }
+        )
+        llm = LLMFactory.from_config(config)
+        llm.client.chat.completions.create = mock_chat_completions_create
+
+        messages = [{"role": "user", "content": "hi"}]
+        _ = llm.generate(messages)
+
+        # Verify call args: ensure max_completion_tokens used and max_tokens not present
+        kwargs = mock_chat_completions_create.call_args.kwargs
+        self.assertIn("max_completion_tokens", kwargs)
+        self.assertEqual(kwargs["max_completion_tokens"], 321)
+        self.assertNotIn("max_tokens", kwargs)
+
+    def test_stream_openai_backend_gpt5_uses_max_completion_tokens(self):
+        """For gpt-5 models in stream, ensure max_completion_tokens is used."""
+        def make_chunk(delta_dict):
+            delta = SimpleNamespace(**delta_dict)
+            choice = SimpleNamespace(delta=delta, finish_reason="stop", index=0)
+            return SimpleNamespace(choices=[choice])
+
+        mock_stream_chunks = [make_chunk({"content": "Hello"})]
+        mock_chat_completions_create = MagicMock(return_value=iter(mock_stream_chunks))
+
+        config = LLMConfigFactory.model_validate(
+            {
+                "backend": "openai",
+                "config": {
+                    "model_name_or_path": "gpt-5-nano",
+                    "temperature": 0.8,
+                    "max_tokens": 1024,
+                    "max_completion_tokens": 111,
+                    "top_p": 0.9,
+                    "top_k": 50,
+                    "api_key": "sk-xxxx",
+                    "api_base": "https://api.openai.com/v1",
+                    "remove_think_prefix": True,
+                },
+            }
+        )
+        llm = LLMFactory.from_config(config)
+        llm.client.chat.completions.create = mock_chat_completions_create
+
+        messages = [{"role": "user", "content": "Say hello"}]
+        _ = list(llm.generate_stream(messages))
+
+        kwargs = mock_chat_completions_create.call_args.kwargs
+        self.assertIn("max_completion_tokens", kwargs)
+        self.assertEqual(kwargs["max_completion_tokens"], 111)
+        self.assertNotIn("max_tokens", kwargs)
 
     def test_llm_factory_with_stream_openai_backend(self):
         """Test LLMFactory stream generation with mocked OpenAI backend."""
