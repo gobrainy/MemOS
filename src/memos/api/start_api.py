@@ -10,13 +10,16 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from memos.api.product_models import MemoryCreateResponse
+from memos.api.middleware.request_context import RequestContextMiddleware
 from memos.configs.mem_os import MOSConfig
 from memos.mem_os.main import MOS
 from memos.mem_user.user_manager import UserManager, UserRole
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -63,7 +66,9 @@ def get_mos_instance():
         # Create default user if it doesn't exist
         if not temp_mos.user_manager.validate_user(temp_config.user_id):
             temp_mos.user_manager.create_user(
-                user_name=temp_config.user_id, role=UserRole.USER, user_id=temp_config.user_id
+                user_name=temp_config.user_id,
+                role=UserRole.USER,
+                user_id=temp_config.user_id,
             )
             logger.info(f"Created default user: {temp_config.user_id}")
 
@@ -79,21 +84,29 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.add_middleware(RequestContextMiddleware)
+
 
 class BaseRequest(BaseModel):
     """Base model for all requests."""
 
     user_id: str | None = Field(
-        None, description="User ID for the request", json_schema_extra={"example": "user123"}
+        None,
+        description="User ID for the request",
+        json_schema_extra={"example": "user123"},
     )
 
 
 class BaseResponse(BaseModel, Generic[T]):
     """Base model for all responses."""
 
-    code: int = Field(200, description="Response status code", json_schema_extra={"example": 200})
+    code: int = Field(
+        200, description="Response status code", json_schema_extra={"example": 200}
+    )
     message: str = Field(
-        ..., description="Response message", json_schema_extra={"example": "Operation successful"}
+        ...,
+        description="Response message",
+        json_schema_extra={"example": "Operation successful"},
     )
     data: T | None = Field(None, description="Response data")
 
@@ -118,7 +131,9 @@ class MemoryCreate(BaseRequest):
         json_schema_extra={"example": [{"role": "user", "content": "Hello"}]},
     )
     mem_cube_id: str | None = Field(
-        None, description="ID of the memory cube", json_schema_extra={"example": "cube123"}
+        None,
+        description="ID of the memory cube",
+        json_schema_extra={"example": "cube123"},
     )
     memory_content: str | None = Field(
         None,
@@ -168,13 +183,19 @@ class UserCreate(BaseRequest):
     user_name: str | None = Field(
         None, description="Name of the user", json_schema_extra={"example": "john_doe"}
     )
-    role: str = Field("user", description="Role of the user", json_schema_extra={"example": "user"})
-    user_id: str = Field(..., description="User ID", json_schema_extra={"example": "user123"})
+    role: str = Field(
+        "user", description="Role of the user", json_schema_extra={"example": "user"}
+    )
+    user_id: str = Field(
+        ..., description="User ID", json_schema_extra={"example": "user123"}
+    )
 
 
 class CubeShare(BaseRequest):
     target_user_id: str = Field(
-        ..., description="Target user ID to share with", json_schema_extra={"example": "user456"}
+        ...,
+        description="Target user ID to share with",
+        json_schema_extra={"example": "user456"},
     )
 
 
@@ -266,7 +287,9 @@ async def register_mem_cube(mem_cube: MemCubeRegister):
 
 
 @app.delete(
-    "/mem_cubes/{mem_cube_id}", summary="Unregister a MemCube", response_model=SimpleResponse
+    "/mem_cubes/{mem_cube_id}",
+    summary="Unregister a MemCube",
+    response_model=SimpleResponse,
 )
 async def unregister_mem_cube(mem_cube_id: str, user_id: str | None = None):
     """Unregister a MemCube."""
@@ -293,12 +316,16 @@ async def share_cube(cube_id: str, share_request: CubeShare):
 @app.post("/memories", summary="Create memories", response_model=MemoryCreateResponse)
 async def add_memory(memory_create: MemoryCreate):
     """Store new memories in a MemCube."""
-    if not any([memory_create.messages, memory_create.memory_content, memory_create.doc_path]):
-        raise ValueError("Either messages, memory_content, or doc_path must be provided")
-    
+    if not any(
+        [memory_create.messages, memory_create.memory_content, memory_create.doc_path]
+    ):
+        raise ValueError(
+            "Either messages, memory_content, or doc_path must be provided"
+        )
+
     mos_instance = get_mos_instance()
     memory_ids = []
-    
+
     if memory_create.messages:
         messages = [m.model_dump() for m in memory_create.messages]
         memory_ids = mos_instance.add(
@@ -318,10 +345,9 @@ async def add_memory(memory_create: MemoryCreate):
             mem_cube_id=memory_create.mem_cube_id,
             user_id=memory_create.user_id,
         )
-    
+
     return MemoryCreateResponse(
-        message="Memories added successfully", 
-        data={"memory_ids": memory_ids}
+        message="Memories added successfully", data={"memory_ids": memory_ids}
     )
 
 
@@ -337,12 +363,16 @@ async def get_all_memories(
 
 
 @app.get(
-    "/memories/{mem_cube_id}/{memory_id}", summary="Get a memory", response_model=MemoryResponse
+    "/memories/{mem_cube_id}/{memory_id}",
+    summary="Get a memory",
+    response_model=MemoryResponse,
 )
 async def get_memory(mem_cube_id: str, memory_id: str, user_id: str | None = None):
     """Retrieve a specific memory by ID from a MemCube."""
     mos_instance = get_mos_instance()
-    result = mos_instance.get(mem_cube_id=mem_cube_id, memory_id=memory_id, user_id=user_id)
+    result = mos_instance.get(
+        mem_cube_id=mem_cube_id, memory_id=memory_id, user_id=user_id
+    )
     return MemoryResponse(message="Memory retrieved successfully", data=result)
 
 
@@ -359,10 +389,15 @@ async def search_memories(search_req: SearchRequest):
 
 
 @app.put(
-    "/memories/{mem_cube_id}/{memory_id}", summary="Update a memory", response_model=SimpleResponse
+    "/memories/{mem_cube_id}/{memory_id}",
+    summary="Update a memory",
+    response_model=SimpleResponse,
 )
 async def update_memory(
-    mem_cube_id: str, memory_id: str, updated_memory: dict[str, Any], user_id: str | None = None
+    mem_cube_id: str,
+    memory_id: str,
+    updated_memory: dict[str, Any],
+    user_id: str | None = None,
 ):
     """Update an existing memory in a MemCube."""
     mos_instance = get_mos_instance()
@@ -376,7 +411,9 @@ async def update_memory(
 
 
 @app.delete(
-    "/memories/{mem_cube_id}/{memory_id}", summary="Delete a memory", response_model=SimpleResponse
+    "/memories/{mem_cube_id}/{memory_id}",
+    summary="Delete a memory",
+    response_model=SimpleResponse,
 )
 async def delete_memory(mem_cube_id: str, memory_id: str, user_id: str | None = None):
     """Delete a specific memory from a MemCube."""
@@ -385,7 +422,11 @@ async def delete_memory(mem_cube_id: str, memory_id: str, user_id: str | None = 
     return SimpleResponse(message="Memory deleted successfully")
 
 
-@app.delete("/memories/{mem_cube_id}", summary="Delete all memories", response_model=SimpleResponse)
+@app.delete(
+    "/memories/{mem_cube_id}",
+    summary="Delete all memories",
+    response_model=SimpleResponse,
+)
 async def delete_all_memories(mem_cube_id: str, user_id: str | None = None):
     """Delete all memories from a MemCube."""
     mos_instance = get_mos_instance()
