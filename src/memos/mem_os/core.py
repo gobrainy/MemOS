@@ -20,6 +20,7 @@ from memos.mem_scheduler.schemas.general_schemas import (
     QUERY_LABEL,
 )
 from memos.mem_scheduler.schemas.message_schemas import ScheduleMessageItem
+from memos.mem_user.factory import UserManagerFactory
 from memos.mem_user.user_manager import UserManager, UserRole
 from memos.memories.activation.item import ActivationMemoryItem
 from memos.memories.parametric.item import ParametricMemoryItem
@@ -56,7 +57,9 @@ class MOSCore:
         if user_manager is not None:
             self.user_manager = user_manager
         else:
-            self.user_manager = UserManager(user_id=self.user_id if self.user_id else "root")
+            # Select backend based on env and default to sqlite
+            factory_user_manager = UserManagerFactory.from_env()
+            self.user_manager = factory_user_manager
 
         # Validate user exists
         if not self.user_manager.validate_user(self.user_id):
@@ -428,7 +431,7 @@ class MOSCore:
             {
                 "user_id": user.user_id,
                 "user_name": user.user_name,
-                "role": user.role.value,
+                "role": user.role.value if hasattr(user.role, "value") else user.role,
                 "created_at": user.created_at.isoformat(),
                 "is_active": user.is_active,
             }
