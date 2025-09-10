@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+import os
 
 from sqlalchemy import (
     Boolean,
@@ -105,14 +106,24 @@ class UserManager:
                 If None, uses default path in MEMOS_DIR.
             user_id (str, optional): User ID. If None, uses default user ID.
         """
-        if db_path is None:
-            db_path = str(settings.MEMOS_DIR / "memos_users.db")
+        sqlite_url_env = os.getenv("MEMOS_SQLITE_URL")
 
-        # Ensure the directory exists
-        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        if sqlite_url_env and sqlite_url_env.strip():
+            # Use the provided SQLite URL from environment variable
+            sqlite_url = sqlite_url_env.strip()
+            self.db_path = None
+        else:
+            # Fallback to file-based SQLite using provided or default path
+            if db_path is None:
+                db_path = str(settings.MEMOS_DIR / "memos_users.db")
 
-        self.db_path = db_path
-        self.engine = create_engine(f"sqlite:///{db_path}", echo=False)
+            # Ensure the directory exists for file-based SQLite
+            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+
+            self.db_path = db_path
+            sqlite_url = f"sqlite:///{db_path}"
+
+        self.engine = create_engine(sqlite_url, echo=False)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
         # Create tables
@@ -121,7 +132,10 @@ class UserManager:
         # Initialize with root user if no users exist
         self._init_root_user(user_id)
 
-        logger.info(f"UserManager initialized with database at {db_path}")
+        if sqlite_url_env and sqlite_url_env.strip():
+            logger.info(f"UserManager initialized with SQLite URL")
+        else:
+            logger.info(f"UserManager initialized with database at {db_path}")
 
     def _get_session(self) -> Session:
         """Get a database session."""
