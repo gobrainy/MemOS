@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+THIS SHOULD BE A LINTER ERRORfrom typing import Any, ClassVar
 
 from pydantic import Field, field_validator, model_validator
 
@@ -40,6 +40,17 @@ class HybridChunkerConfig(BaseChunkerConfig):
     )
     overlap_strategy: str = Field(
         default="adaptive", description="Overlap strategy: 'fixed', 'adaptive', 'semantic'"
+    )
+
+    # Optional OpenAI embedding settings for semantic chunking via Universal API
+    openai_api_key: str | None = Field(
+        default=None, description="OpenAI API key for semantic chunking (falls back to env OPENAI_API_KEY)"
+    )
+    openai_base_url: str | None = Field(
+        default=None, description="Base URL for OpenAI embeddings (falls back to env OPENAI_BASE_URL or https://api.openai.com/v1)"
+    )
+    openai_embedding_model: str = Field(
+        default="text-embedding-3-small", description="OpenAI embedding model for semantic chunking (falls back to env OPENAI_EMBED_MODEL)"
     )
 
 
