@@ -9,14 +9,14 @@ Set these env vars (for OpenAI; Azure or proxies are also supported):
 - OPENAI_API_KEY: your OpenAI API key
 - OPENAI_API_BASE: optional; defaults to `https://api.openai.com/v1`
 - OPENAI_CHAT_MODEL: optional; defaults to `gpt-4o-mini`
-- OPENAI_EMBED_MODEL: optional; defaults to `text-embedding-3-small`
+- OPENAI_EMBED_MODEL: optional; defaults to `text-embedding-3-large`
 
 Optional overrides for the built-in API server:
 
 - MOS_EMBEDDER_BACKEND: set to `universal_api` (default)
 - MOS_EMBEDDER_PROVIDER: `openai` (default)
 - MOS_EMBEDDER_API_KEY: defaults to `OPENAI_API_KEY`
-- MOS_EMBEDDER_MODEL: defaults to `OPENAI_EMBED_MODEL` or `text-embedding-3-small`
+- MOS_EMBEDDER_MODEL: defaults to `OPENAI_EMBED_MODEL` or `text-embedding-3-large`
 - MOS_EMBEDDER_API_BASE: defaults to `OPENAI_API_BASE` or `https://api.openai.com/v1`
 
 ### 2) Example JSON config
@@ -108,7 +108,7 @@ You can configure MemOS programmatically or POST to the API. Here’s a working 
           "db_name": "${NEO4J_DB_NAME}",
           "use_multi_db": false,
           "user_name": "memos_${USER_ID}",
-          "embedding_dimension": 1536,
+          "embedding_dimension": 3072,
           "vec_config": {
             "backend": "qdrant",
             "config": {
@@ -116,7 +116,7 @@ You can configure MemOS programmatically or POST to the API. Here’s a working 
               "port": "${QDRANT_PORT}",
               "collection_name": "${QDRANT_COLLECTION}",
               "distance_metric": "cosine",
-              "vector_dimension": 1536
+              "vector_dimension": 3072
             }
           }
         }
@@ -138,7 +138,7 @@ You can configure MemOS programmatically or POST to the API. Here’s a working 
 
 Notes:
 
-- Use `text-embedding-3-small` (1536 dims) or `text-embedding-3-large` (3072 dims). Ensure your vector DB dimensions match.
+- Default uses `text-embedding-3-large` (3072 dims). If you switch to `text-embedding-3-small` (1536 dims), update `embedding_dimension` and `vector_dimension` accordingly.
 - If you switch models, also update `embedding_dimension` and `vector_dimension` accordingly.
 
 ### 3) Programmatic defaults

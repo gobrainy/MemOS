@@ -131,7 +131,7 @@ class APIConfig:
                     ),
                     "model_name_or_path": os.getenv(
                         "MOS_EMBEDDER_MODEL",
-                        os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small"),
+                        os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-large"),
                     ),
                     "base_url": os.getenv(
                         "MOS_EMBEDDER_API_BASE",
