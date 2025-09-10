@@ -31,6 +31,15 @@ class OpenAILLM(BaseLLM):
             "temperature": self.config.temperature,
             "top_p": self.config.top_p,
         }
+        # GPT-5 models: enforce API constraints (no top_p/logprobs; temperature must be 1)
+        if is_gpt5_family:
+            create_kwargs["temperature"] = 1
+            if "top_p" in create_kwargs:
+                create_kwargs.pop("top_p")
+            # Sanitize extra_body for unsupported sampling/logprob fields
+            if isinstance(create_kwargs.get("extra_body"), dict):
+                for k in ["top_p", "top_logprobs", "logprobs", "logit_bias"]:
+                    create_kwargs["extra_body"].pop(k, None)
         if is_gpt5_family:
             # Use explicit max_completion_tokens if provided; otherwise fallback to max_tokens
             max_comp = getattr(self.config, "max_completion_tokens", None)
@@ -61,6 +70,13 @@ class OpenAILLM(BaseLLM):
             "top_p": self.config.top_p,
             "extra_body": self.config.extra_body,
         }
+        if is_gpt5_family:
+            create_kwargs["temperature"] = 1
+            if "top_p" in create_kwargs:
+                create_kwargs.pop("top_p")
+            if isinstance(create_kwargs.get("extra_body"), dict):
+                for k in ["top_p", "top_logprobs", "logprobs", "logit_bias"]:
+                    create_kwargs["extra_body"].pop(k, None)
         if is_gpt5_family:
             max_comp = getattr(self.config, "max_completion_tokens", None)
             if max_comp is None:
