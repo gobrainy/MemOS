@@ -4,6 +4,8 @@ from memos.configs.chunker import ChunkerConfigFactory
 
 from .base import BaseChunker
 from .sentence_chunker import SentenceChunker
+from .hybrid_chunker import HybridChunker
+from .langchain_chunker import LangChainChunker
 
 
 class ChunkerFactory:
@@ -11,6 +13,8 @@ class ChunkerFactory:
 
     backend_to_class: ClassVar[dict[str, Any]] = {
         "sentence": SentenceChunker,
+        "hybrid": HybridChunker,
+        "langchain": LangChainChunker,
     }
 
     @classmethod
