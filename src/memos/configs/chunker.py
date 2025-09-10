@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERRORfrom typing import Any, ClassVar
+from typing import Any, ClassVar
 
 from pydantic import Field, field_validator, model_validator
 
@@ -50,7 +50,7 @@ class HybridChunkerConfig(BaseChunkerConfig):
         default=None, description="Base URL for OpenAI embeddings (falls back to env OPENAI_BASE_URL or https://api.openai.com/v1)"
     )
     openai_embedding_model: str = Field(
-        default="text-embedding-3-small", description="OpenAI embedding model for semantic chunking (falls back to env OPENAI_EMBED_MODEL)"
+        default="text-embedding-3-large", description="OpenAI embedding model for semantic chunking (falls back to env OPENAI_EMBED_MODEL)"
     )
 
 

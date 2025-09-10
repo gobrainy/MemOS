@@ -47,7 +47,7 @@ class HybridChunker(BaseChunker):
                 model_name = (
                     config.openai_embedding_model
                     or os.getenv("OPENAI_EMBED_MODEL")
-                    or "text-embedding-3-small"
+                    or "text-embedding-3-large"
                 )
                 if not api_key:
                     raise RuntimeError("Missing OpenAI API key for semantic chunking")
