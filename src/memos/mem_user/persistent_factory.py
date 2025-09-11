@@ -2,6 +2,9 @@ from typing import Any, ClassVar
 
 from memos.configs.mem_user import UserManagerConfigFactory
 from memos.mem_user.mysql_persistent_user_manager import MySQLPersistentUserManager
+from memos.mem_user.postgres_persistent_user_manager import (
+    PostgresPersistentUserManager,
+)
 from memos.mem_user.persistent_user_manager import PersistentUserManager
 
 
@@ -11,12 +14,14 @@ class PersistentUserManagerFactory:
     backend_to_class: ClassVar[dict[str, Any]] = {
         "sqlite": PersistentUserManager,
         "mysql": MySQLPersistentUserManager,
+        "postgres": PostgresPersistentUserManager,
+        "postgresql": PostgresPersistentUserManager,
     }
 
     @classmethod
     def from_config(
         cls, config_factory: UserManagerConfigFactory
-    ) -> PersistentUserManager | MySQLPersistentUserManager:
+    ) -> PersistentUserManager | MySQLPersistentUserManager | PostgresUserManager:
         """Create a persistent user manager instance from configuration.
 
         Args:

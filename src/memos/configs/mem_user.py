@@ -31,6 +31,17 @@ class MySQLUserManagerConfig(BaseUserManagerConfig):
     charset: str = Field(default="utf8mb4", description="MySQL charset")
 
 
+class PostgresUserManagerConfig(BaseUserManagerConfig):
+    """PostgreSQL user manager configuration."""
+
+    host: str = Field(default="localhost", description="PostgreSQL server host")
+    port: int = Field(default=5432, description="PostgreSQL server port")
+    username: str = Field(default="postgres", description="PostgreSQL username")
+    password: str = Field(default="", description="PostgreSQL password")
+    database: str = Field(default="memos_users", description="PostgreSQL database name")
+    sslmode: str | None = Field(default=None, description="PostgreSQL sslmode parameter")
+
+
 class UserManagerConfigFactory(BaseModel):
     """Factory for user manager configurations."""
 
@@ -42,6 +53,8 @@ class UserManagerConfigFactory(BaseModel):
     backend_to_class: ClassVar[dict[str, Any]] = {
         "sqlite": SQLiteUserManagerConfig,
         "mysql": MySQLUserManagerConfig,
+        "postgres": PostgresUserManagerConfig,
+        "postgresql": PostgresUserManagerConfig,
     }
 
     @field_validator("backend")
