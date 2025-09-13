@@ -119,16 +119,24 @@ class APIConfig:
     @staticmethod
     def get_embedder_config() -> dict[str, Any]:
         """Get embedder configuration."""
-        embedder_backend = os.getenv("MOS_EMBEDDER_BACKEND", "ollama")
+        embedder_backend = os.getenv("MOS_EMBEDDER_BACKEND", "universal_api")
 
         if embedder_backend == "universal_api":
             return {
                 "backend": "universal_api",
                 "config": {
                     "provider": os.getenv("MOS_EMBEDDER_PROVIDER", "openai"),
-                    "api_key": os.getenv("MOS_EMBEDDER_API_KEY", "sk-xxxx"),
-                    "model_name_or_path": os.getenv("MOS_EMBEDDER_MODEL", "text-embedding-3-large"),
-                    "base_url": os.getenv("MOS_EMBEDDER_API_BASE", "http://openai.com"),
+                    "api_key": os.getenv(
+                        "MOS_EMBEDDER_API_KEY", os.getenv("OPENAI_API_KEY", "sk-xxxx")
+                    ),
+                    "model_name_or_path": os.getenv(
+                        "MOS_EMBEDDER_MODEL",
+                        os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-large"),
+                    ),
+                    "base_url": os.getenv(
+                        "MOS_EMBEDDER_API_BASE",
+                        os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1"),
+                    ),
                 },
             }
         else:  # ollama
