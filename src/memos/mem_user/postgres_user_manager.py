@@ -5,6 +5,8 @@ functionality using SQLAlchemy and PostgreSQL.
 """
 
 import uuid
+import os
+from pathlib import Path
 
 from datetime import datetime
 from enum import Enum
@@ -17,6 +19,7 @@ from sqlalchemy import (
     String,
     Table,
     create_engine,
+    text,
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
@@ -124,7 +127,10 @@ class PostgresUserManager:
         self.engine = create_engine(base_url, echo=False, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
-        # Create tables
+        # Run bootstrap SQL if provided in repo (idempotent)
+        self._run_bootstrap_sql_if_present()
+
+        # Create tables defined by ORM models (idempotent)
         Base.metadata.create_all(bind=self.engine)
 
         # Initialize with root user if no users exist
@@ -137,6 +143,42 @@ class PostgresUserManager:
     def _get_session(self) -> Session:
         """Get a database session."""
         return self.SessionLocal()
+
+    def _run_bootstrap_sql_if_present(self) -> None:
+        """Execute bootstrap SQL script if available.
+
+        Looks for `sql/postgres-user-manager.sql` at the repository root. If an
+        environment variable `MEMOS_POSTGRES_SCHEMA_PATH` is set, that path is
+        used instead. Execution is idempotent due to IF NOT EXISTS in the script.
+        """
+        try:
+            env_path = os.getenv("MEMOS_POSTGRES_SCHEMA_PATH")
+            if env_path:
+                schema_path = Path(env_path).expanduser().resolve()
+            else:
+                # repo_root = .../MemOS
+                repo_root = Path(__file__).resolve().parents[3]
+                schema_path = repo_root / "sql" / "postgres-user-manager.sql"
+
+            if not schema_path.exists():
+                logger.debug(f"Postgres bootstrap SQL not found at {schema_path}")
+                return
+
+            sql_text = schema_path.read_text(encoding="utf-8")
+            if not sql_text.strip():
+                return
+
+            with self.engine.begin() as conn:
+                # Execute multiple statements separated by semicolons
+                for raw_statement in sql_text.split(";"):
+                    statement = raw_statement.strip()
+                    if not statement:
+                        continue
+                    conn.execute(text(statement))
+
+            logger.info(f"Executed Postgres bootstrap SQL: {schema_path}")
+        except Exception as e:
+            logger.warning(f"Failed to execute Postgres bootstrap SQL: {e}")
 
     def _init_root_user(self, user_id: str) -> None:
         """Initialize the root user if no users exist."""
