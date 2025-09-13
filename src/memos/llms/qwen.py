@@ -18,7 +18,6 @@ class QwenLLM(OpenAILLM):
 
     def generate(self, messages: MessageList) -> str:
         """Generate a response from Qwen LLM."""
-        # Qwen via compatible API keeps legacy params; no GPT-5 constraints here
         response = self.client.chat.completions.create(
             model=self.config.model_name_or_path,
             messages=messages,
