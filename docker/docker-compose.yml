@@ -13,6 +13,7 @@ services:
     depends_on:
       - neo4j
       - qdrant
+      - postgres
     environment:
       - PYTHONPATH=/app/src
       - HF_ENDPOINT=https://hf-mirror.com
@@ -58,9 +59,31 @@ services:
     networks:
       - memos_network
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-docker
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${MEMOS_POSTGRES_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${MEMOS_POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${MEMOS_POSTGRES_DATABASE:-memos_users}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../postgres-user-manager.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    networks:
+      - memos_network
+
 volumes:
   neo4j_data:
   neo4j_logs:
+  postgres_data:
 
 networks:
   memos_network:
