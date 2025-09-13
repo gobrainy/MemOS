@@ -2,18 +2,20 @@
 Hybrid Text Chunker combining multiple chunking strategies.
 
 This chunker implements a sophisticated approach that combines:
-1. Semantic similarity-based chunking using sentence transformers
+1. Semantic similarity-based chunking using OpenAI embeddings via the Universal API
 2. Document structure awareness (headers, paragraphs, lists)
 3. Adaptive overlap based on content similarity
 4. Fallback to sentence/character-based chunking
 """
 
+import os
 import re
 import numpy as np
 from typing import List, Optional, Tuple
-from sentence_transformers import SentenceTransformer
 
 from memos.configs.chunker import HybridChunkerConfig
+from memos.embedders.universal_api import UniversalAPIEmbedder
+from memos.configs.embedder import UniversalAPIEmbedderConfig
 from memos.dependency import require_python_package
 from memos.log import get_logger
 
@@ -29,11 +31,6 @@ class HybridChunker(BaseChunker):
     """
 
     @require_python_package(
-        import_name="sentence_transformers",
-        install_command="pip install sentence-transformers",
-        install_link="https://www.sbert.net/docs/installation.html",
-    )
-    @require_python_package(
         import_name="numpy",
         install_command="pip install numpy",
         install_link="https://numpy.org/install/",
@@ -41,18 +38,34 @@ class HybridChunker(BaseChunker):
     def __init__(self, config: HybridChunkerConfig):
         self.config = config
         
-        # Initialize sentence transformer for semantic similarity
+        # Initialize OpenAI embedder for semantic similarity via Universal API
+        self.embedder = None
         if config.use_semantic_chunking:
             try:
-                # Use a lightweight but effective model for semantic similarity
-                self.embedder = SentenceTransformer('all-MiniLM-L6-v2')
-                logger.info("Initialized SentenceTransformer for semantic chunking")
+                api_key = config.openai_api_key or os.getenv("OPENAI_API_KEY")
+                base_url = config.openai_base_url or os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
+                model_name = (
+                    config.openai_embedding_model
+                    or os.getenv("OPENAI_EMBED_MODEL")
+                    or "text-embedding-3-large"
+                )
+                if not api_key:
+                    raise RuntimeError("Missing OpenAI API key for semantic chunking")
+
+                embedder_cfg = UniversalAPIEmbedderConfig(
+                    provider="openai",
+                    api_key=api_key,
+                    base_url=base_url,
+                    model_name_or_path=model_name,
+                )
+                self.embedder = UniversalAPIEmbedder(embedder_cfg)
+                logger.info("Initialized OpenAI UniversalAPIEmbedder for semantic chunking")
             except Exception as e:
-                logger.warning(f"Failed to initialize SentenceTransformer: {e}. Falling back to structural chunking only.")
+                logger.warning(
+                    f"Failed to initialize OpenAI embedder for semantic chunking: {e}. Falling back to structural chunking only."
+                )
                 self.embedder = None
                 config.use_semantic_chunking = False
-        else:
-            self.embedder = None
 
         # Initialize tokenizer for length calculations
         try:
@@ -189,7 +202,7 @@ class HybridChunker(BaseChunker):
         
         # Get embeddings for all segments
         try:
-            embeddings = self.embedder.encode(segments)
+            embeddings = self.embedder.embed(segments)
             
             chunks = []
             current_chunk = segments[0]

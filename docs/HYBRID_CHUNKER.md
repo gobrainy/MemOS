@@ -7,7 +7,7 @@ The **Hybrid Chunker** is an advanced text chunking strategy that combines multi
 ## Features
 
 ### 🧠 **Semantic Chunking**
-- Uses **Sentence Transformers** to measure semantic similarity between text segments
+- Uses **OpenAI embeddings via Universal API** to measure semantic similarity
 - Groups semantically related content together
 - Configurable similarity threshold for fine-tuning
 
@@ -63,8 +63,8 @@ The **Hybrid Chunker** is an advanced text chunking strategy that combines multi
   - Lower values = larger chunks, less strict semantic grouping
 
 - `use_semantic_chunking`: Enable semantic similarity-based chunking (default: true)
-  - Requires sentence-transformers library
-  - Falls back to structural chunking if disabled or unavailable
+  - Uses OpenAI embeddings through the built-in Universal API embedder
+  - Falls back to structural chunking if API credentials are missing
 
 - `use_document_structure`: Use document structure for chunking (default: true)
   - Recognizes headers, paragraphs, lists
@@ -107,7 +107,7 @@ The **Hybrid Chunker** is an advanced text chunking strategy that combines multi
 }
 ```
 
-### 2. MemReader Configuration
+### 2. MemReader Configuration (OpenAI embeddings)
 
 ```json
 {
@@ -119,7 +119,8 @@ The **Hybrid Chunker** is an advanced text chunking strategy that combines multi
         "tokenizer_or_token_counter": "gpt2",
         "semantic_similarity_threshold": 0.8,
         "use_semantic_chunking": true,
-        "overlap_strategy": "fixed"
+        "overlap_strategy": "fixed",
+        "openai_embedding_model": "text-embedding-3-large"  
       }
     }
   }
@@ -156,7 +157,7 @@ chunks = chunker.chunk(your_text)
 The Hybrid Chunker requires the following additional packages:
 
 ```bash
-pip install sentence-transformers numpy transformers
+pip install numpy transformers
 ```
 
 ### Optional Dependencies
@@ -219,8 +220,8 @@ pip install sentence-transformers numpy transformers
 
 ### Common Issues
 
-1. **"Could not load sentence-transformers"**
-   - Install: `pip install sentence-transformers`
+1. **"OpenAI API key missing"**
+   - Set `OPENAI_API_KEY` environment variable or configure `openai_api_key` in chunker config
    - Will fallback to structural chunking
 
 2. **"Tokenizer not found"** 

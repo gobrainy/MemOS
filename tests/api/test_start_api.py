@@ -114,8 +114,13 @@ def test_configure(mock_mos):
                         },
                     },
                     "embedder": {
-                        "backend": "sentence_transformer",
-                        "config": {"model_name_or_path": "all-MiniLM-L6-v2"},
+                        "backend": "universal_api",
+                        "config": {
+                            "provider": "openai",
+                            "api_key": "test_key",
+                            "model_name_or_path": "text-embedding-3-small",
+                            "base_url": "https://api.openai.com/v1",
+                        },
                     },
                     "chunker": {
                         "backend": "sentence",
