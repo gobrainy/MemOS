@@ -21,14 +21,36 @@ class OpenAILLM(BaseLLM):
 
     def generate(self, messages: MessageList) -> str:
         """Generate a response from OpenAI LLM."""
-        response = self.client.chat.completions.create(
-            model=self.config.model_name_or_path,
-            messages=messages,
-            extra_body=self.config.extra_body,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-            top_p=self.config.top_p,
-        )
+        model_name = self.config.model_name_or_path
+        is_gpt5_family = model_name.startswith("gpt-5")
+        # Build kwargs conditionally to support gpt-5* models requiring max_completion_tokens
+        create_kwargs = {
+            "model": model_name,
+            "messages": messages,
+            "extra_body": self.config.extra_body,
+            "temperature": self.config.temperature,
+            "top_p": self.config.top_p,
+        }
+        # GPT-5 models: enforce API constraints (no top_p/logprobs; temperature must be 1)
+        if is_gpt5_family:
+            create_kwargs["temperature"] = 1
+            if "top_p" in create_kwargs:
+                create_kwargs.pop("top_p")
+            # Sanitize extra_body for unsupported sampling/logprob fields
+            if isinstance(create_kwargs.get("extra_body"), dict):
+                for k in ["top_p", "top_logprobs", "logprobs", "logit_bias"]:
+                    create_kwargs["extra_body"].pop(k, None)
+        if is_gpt5_family:
+            # Use explicit max_completion_tokens if provided; otherwise fallback to max_tokens
+            max_comp = getattr(self.config, "max_completion_tokens", None)
+            if max_comp is None:
+                max_comp = getattr(self.config, "max_tokens", None)
+            if max_comp is not None:
+                create_kwargs["max_completion_tokens"] = max_comp
+        else:
+            create_kwargs["max_tokens"] = self.config.max_tokens
+
+        response = self.client.chat.completions.create(**create_kwargs)
         logger.info(f"Response from OpenAI: {response.model_dump_json()}")
         response_content = response.choices[0].message.content
         if self.config.remove_think_prefix:

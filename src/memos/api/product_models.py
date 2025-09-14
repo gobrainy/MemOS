@@ -42,6 +42,7 @@ class UserRegisterRequest(BaseRequest):
     user_id: str = Field(
         default_factory=lambda: str(uuid.uuid4()), description="User ID for registration"
     )
+    mem_cube_id: str | None = Field(None, description="Cube ID for registration")
     user_name: str | None = Field(None, description="User name for registration")
     interests: str | None = Field(None, description="User interests")
 
@@ -114,6 +115,11 @@ class CubeShare(BaseRequest):
 # Response Models
 class SimpleResponse(BaseResponse[None]):
     """Simple response model for operations without data return."""
+
+class MemoryCreateResponse(BaseResponse[dict]):
+    """Response model for memory creation operations with memory IDs."""
+    
+    data: dict[str, list[str]] | None = Field(None, description="Response data containing memory IDs")
 
 
 class UserRegisterResponse(BaseResponse[dict]):

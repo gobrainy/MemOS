@@ -43,6 +43,7 @@ def test_openai_llm_config():
         optional_fields=[
             "temperature",
             "max_tokens",
+            "max_completion_tokens",
             "top_p",
             "top_k",
             "api_base",

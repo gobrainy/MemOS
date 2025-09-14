@@ -16,6 +16,7 @@ from memos.api.product_models import (
     GetMemoryRequest,
     MemoryCreateRequest,
     MemoryResponse,
+    MemoryCreateResponse,
     SearchRequest,
     SearchResponse,
     SimpleResponse,
@@ -106,6 +107,7 @@ def register_user(user_req: UserRegisterRequest, g: Annotated[G, Depends(get_g_o
             interests=user_req.interests,
             config=user_config,
             default_mem_cube=default_mem_cube,
+            mem_cube_id=user_req.mem_cube_id,
         )
 
         if result["status"] == "success":
@@ -190,12 +192,12 @@ def get_all_memories(memory_req: GetMemoryRequest):
         raise HTTPException(status_code=500, detail=str(traceback.format_exc())) from err
 
 
-@router.post("/add", summary="add a new memory", response_model=SimpleResponse)
+@router.post("/add", summary="add a new memory", response_model=MemoryCreateResponse)
 def create_memory(memory_req: MemoryCreateRequest):
     """Create a new memory for a specific user."""
     try:
         mos_product = get_mos_product_instance()
-        mos_product.add(
+        memory_ids = mos_product.add(
             user_id=memory_req.user_id,
             memory_content=memory_req.memory_content,
             messages=memory_req.messages,
@@ -204,7 +206,10 @@ def create_memory(memory_req: MemoryCreateRequest):
             source=memory_req.source,
             user_profile=memory_req.user_profile,
         )
-        return SimpleResponse(message="Memory created successfully")
+        return MemoryCreateResponse(
+            message="Memory created successfully",
+            data={"memory_ids": memory_ids}
+        )
 
     except ValueError as err:
         raise HTTPException(status_code=404, detail=str(traceback.format_exc())) from err

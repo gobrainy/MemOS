@@ -207,17 +207,17 @@ class MOSMCPStdioServer:
                 user_id (str, optional): User ID for access validation. If not provided, uses default user
 
             Returns:
-                str: Success message confirming memories were added
+                str: Success message confirming memories were added with memory IDs
             """
             try:
-                self.mos_core.add(
+                memory_ids = self.mos_core.add(
                     messages=messages,
                     memory_content=memory_content,
                     doc_path=doc_path,
                     mem_cube_id=cube_id,
                     user_id=user_id,
                 )
-                return "Memory added successfully"
+                return f"Memory added successfully. Memory IDs: {', '.join(memory_ids)}"
             except Exception as e:
                 return f"Error adding memory: {e!s}"
 

@@ -624,7 +624,7 @@ class MOSCore:
         doc_path: str | None = None,
         mem_cube_id: str | None = None,
         user_id: str | None = None,
-    ) -> None:
+    ) -> list[str]:
         """
         Add textual memories to a MemCube.
 
@@ -635,13 +635,16 @@ class MOSCore:
             mem_cube_id (str, optional): The identifier of the MemCube to add the memories to.
                 If None, the default MemCube for the user is used.
             user_id (str, optional): The identifier of the user to add the memories to.
-                If None, the default user is used.
+                If None, the default user is used.                         
+        Returns:
+            list[str]: List of memory IDs that were added.
         """
         # user input messages
         assert (messages is not None) or (memory_content is not None) or (doc_path is not None), (
             "messages_or_doc_path or memory_content or doc_path must be provided."
         )
         target_user_id = user_id if user_id is not None else self.user_id
+        all_memory_ids = []
         if mem_cube_id is None:
             # Try to find a default cube for the user
             accessible_cubes = self.user_manager.get_user_cubes(target_user_id)
@@ -669,7 +672,8 @@ class MOSCore:
                     add_memory.append(
                         TextualMemoryItem(memory=message["content"], metadata=metadata)
                     )
-                self.mem_cubes[mem_cube_id].text_mem.add(add_memory)
+                mem_id_list = self.mem_cubes[mem_cube_id].text_mem.add(add_memory)
+                all_memory_ids.extend(mem_id_list)
             else:
                 messages_list = [messages]
                 memories = self.mem_reader.get_memory(
@@ -682,6 +686,7 @@ class MOSCore:
                 for mem in memories:
                     mem_id_list: list[str] = self.mem_cubes[mem_cube_id].text_mem.add(mem)
                     mem_ids.extend(mem_id_list)
+                    all_memory_ids.extend(mem_id_list)
                     logger.info(
                         f"Added memory user {target_user_id} to memcube {mem_cube_id}: {mem_id_list}"
                     )
@@ -709,9 +714,10 @@ class MOSCore:
                 metadata = TextualMemoryMetadata(
                     user_id=self.user_id, session_id=self.session_id, source="conversation"
                 )
-                self.mem_cubes[mem_cube_id].text_mem.add(
+                mem_id_list = self.mem_cubes[mem_cube_id].text_mem.add(
                     [TextualMemoryItem(memory=memory_content, metadata=metadata)]
                 )
+                all_memory_ids.extend(mem_id_list)
             else:
                 messages_list = [
                     [{"role": "user", "content": memory_content}]
@@ -729,6 +735,7 @@ class MOSCore:
                         f"Added memory user {target_user_id} to memcube {mem_cube_id}: {mem_id_list}"
                     )
                     mem_ids.extend(mem_id_list)
+                    all_memory_ids.extend(mem_id_list)
 
                 # submit messages for scheduler
                 if self.enable_mem_scheduler and self.mem_scheduler is not None:
@@ -760,6 +767,7 @@ class MOSCore:
             for mem in doc_memories:
                 mem_id_list: list[str] = self.mem_cubes[mem_cube_id].text_mem.add(mem)
                 mem_ids.extend(mem_id_list)
+                all_memory_ids.extend(mem_id_list)
 
             # submit messages for scheduler
             if self.enable_mem_scheduler and self.mem_scheduler is not None:
@@ -775,6 +783,7 @@ class MOSCore:
                 self.mem_scheduler.submit_messages(messages=[message_item])
 
         logger.info(f"Add memory to {mem_cube_id} successfully")
+        return all_memory_ids
 
     def get(
         self, mem_cube_id: str, memory_id: str, user_id: str | None = None

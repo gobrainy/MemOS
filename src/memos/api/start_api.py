@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from memos.api.middleware.request_context import RequestContextMiddleware
+from memos.api.product_models import MemoryCreateResponse
 from memos.configs.mem_os import MOSConfig
 from memos.mem_os.main import MOS
 from memos.mem_user.user_manager import UserManager, UserRole
@@ -292,32 +293,35 @@ async def share_cube(cube_id: str, share_request: CubeShare):
         raise ValueError("Failed to share cube")
 
 
-@app.post("/memories", summary="Create memories", response_model=SimpleResponse)
+@app.post("/memories", summary="Create memories", response_model=MemoryCreateResponse)
 async def add_memory(memory_create: MemoryCreate):
     """Store new memories in a MemCube."""
     if not any([memory_create.messages, memory_create.memory_content, memory_create.doc_path]):
         raise ValueError("Either messages, memory_content, or doc_path must be provided")
     mos_instance = get_mos_instance()
+    memory_ids = []
     if memory_create.messages:
         messages = [m.model_dump() for m in memory_create.messages]
-        mos_instance.add(
+        memory_ids = mos_instance.add(
             messages=messages,
             mem_cube_id=memory_create.mem_cube_id,
             user_id=memory_create.user_id,
         )
     elif memory_create.memory_content:
-        mos_instance.add(
+        memory_ids = mos_instance.add(
             memory_content=memory_create.memory_content,
             mem_cube_id=memory_create.mem_cube_id,
             user_id=memory_create.user_id,
         )
     elif memory_create.doc_path:
-        mos_instance.add(
+        memory_ids = mos_instance.add(
             doc_path=memory_create.doc_path,
             mem_cube_id=memory_create.mem_cube_id,
             user_id=memory_create.user_id,
         )
-    return SimpleResponse(message="Memories added successfully")
+    return MemoryCreateResponse(
+        message="Memories added successfully", data={"memory_ids": memory_ids}
+    )
 
 
 @app.get("/memories", summary="Get all memories", response_model=MemoryResponse)

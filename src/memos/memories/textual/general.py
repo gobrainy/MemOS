@@ -74,11 +74,14 @@ class GeneralTextMemory(BaseTextMemory):
 
         return extracted_memories
 
-    def add(self, memories: list[TextualMemoryItem | dict[str, Any]]) -> None:
+    def add(self, memories: list[TextualMemoryItem | dict[str, Any]]) -> list[str]:
         """Add memories.
 
         Args:
             memories: List of TextualMemoryItem objects or dictionaries to add.
+
+        Returns:
+            List of memory IDs that were added.
         """
         memory_items = [TextualMemoryItem(**m) if isinstance(m, dict) else m for m in memories]
 
@@ -98,6 +101,9 @@ class GeneralTextMemory(BaseTextMemory):
 
         # Add to vector db
         self.vector_db.add(vec_db_items)
+
+        # Return the memory IDs
+        return [item.id for item in memory_items]
 
     def update(self, memory_id: str, new_memory: TextualMemoryItem | dict[str, Any]) -> None:
         """Update a memory by memory_id."""

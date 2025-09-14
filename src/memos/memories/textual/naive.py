@@ -87,8 +87,13 @@ class NaiveTextMemory(BaseTextMemory):
 
         return extracted_memories
 
-    def add(self, memories: list[TextualMemoryItem | dict[str, Any]]) -> None:
-        """Add memories."""
+    def add(self, memories: list[TextualMemoryItem | dict[str, Any]]) -> list[str]:
+        """Add memories.
+        
+        Returns:
+            List of memory IDs that were added.
+        """
+        added_ids = []
         for m in memories:
             # Convert dict to TextualMemoryItem if needed
             memory_item = TextualMemoryItem(**m) if isinstance(m, dict) else m
@@ -98,6 +103,9 @@ class NaiveTextMemory(BaseTextMemory):
 
             if memory_dict["id"] not in [m["id"] for m in self.memories]:
                 self.memories.append(memory_dict)
+                added_ids.append(memory_item.id)
+
+        return added_ids
 
     def update(self, memory_id: str, new_memory: TextualMemoryItem | dict[str, Any]) -> None:
         """Update a memory by memory_id."""

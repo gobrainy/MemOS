@@ -25,7 +25,13 @@ class OpenAILLMConfig(BaseLLMConfig):
         default="https://api.openai.com/v1", description="Base URL for OpenAI API"
     )
     extra_body: Any = Field(default=None, description="extra body")
-
+    max_completion_tokens: int | None = Field(
+        default=None,
+        description=(
+            "Maximum number of completion tokens to generate (for gpt-5 family). "
+            "If not provided, will fall back to 'max_tokens' when using gpt-5 models."
+        ),
+    )
 
 class QwenLLMConfig(BaseLLMConfig):
     api_key: str = Field(..., description="API key for DashScope (Qwen)")
