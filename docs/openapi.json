@@ -286,7 +286,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SimpleResponse"
+                  "$ref": "#/components/schemas/MemoryCreateResponse"
                 }
               }
             }
@@ -884,7 +884,7 @@
             "type": "string",
             "title": "Session Id",
             "description": "Session ID for the MOS. This is used to distinguish between different dialogue",
-            "default": "0ce84b9c-0615-4b9d-83dd-fba50537d5d3"
+            "default": "519acda5-2199-4e04-a141-ee729c57ddcb"
           },
           "chat_model": {
             "$ref": "#/components/schemas/LLMConfigFactory",
@@ -1104,6 +1104,45 @@
         },
         "type": "object",
         "title": "MemoryCreate"
+      },
+      "MemoryCreateResponse": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "description": "Response status code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Response message"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data",
+            "description": "Response data containing memory IDs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "MemoryCreateResponse",
+        "description": "Response model for memory creation operations with memory IDs."
       },
       "MemoryResponse": {
         "properties": {

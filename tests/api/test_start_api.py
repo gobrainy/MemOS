@@ -75,6 +75,7 @@ def mock_mos():
         }
         mock_instance.create_user.return_value = "test_user"
         mock_instance.share_cube_with_user.return_value = True
+        mock_instance.add.return_value = ["mem_123", "mem_456"]  # Mock memory IDs
 
         # Configure the mock to return our mock instance
         mock_get_mos.return_value = mock_instance
@@ -285,7 +286,8 @@ def test_add_memory(mock_mos, memory_create, expected_calls):
     """Test adding memories with different types of content."""
     response = client.post("/memories", json=memory_create)
     assert response.status_code == 200
-    assert response.json() == {"code": 200, "message": "Memories added successfully", "data": None}
+    expected_data = {"memory_ids": ["mem_123", "mem_456"]}
+    assert response.json() == {"code": 200, "message": "Memories added successfully", "data": expected_data}
     mock_mos.add.assert_called_once()
 
 
