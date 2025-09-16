@@ -15,11 +15,6 @@ config = VectorDBConfigFactory.model_validate(
             "path": str(settings.MEMOS_DIR / "qdrant"),
             # Optional: Add API key for authenticated Qdrant instances
             # "api_key": "${QDRANT_API_KEY}",  # Can also use environment variables
-            # Optional: Enable HTTPS for secure connections
-            # "use_https": True,  # Set to True for HTTPS connections
-            # Optional: SSL configuration for HTTPS connections
-            # "verify_ssl": False,  # Set to False to disable SSL certificate verification (useful for self-signed certificates)
-            # "timeout": 30.0,  # Connection timeout in seconds
         },
     }
 )

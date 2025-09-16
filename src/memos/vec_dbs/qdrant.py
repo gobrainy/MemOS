@@ -33,29 +33,14 @@ class QdrantVecDB(BaseVecDB):
                 "(e.g., via Docker: https://qdrant.tech/documentation/quickstart/)."
             )
 
-        # Initialize QdrantClient with optional API key, HTTPS, and SSL support
+        # Initialize QdrantClient with optional API key
         client_kwargs = {}
         if self.config.api_key is not None:
             client_kwargs["api_key"] = self.config.api_key
 
-        # Add SSL configuration if provided
-        if self.config.verify_ssl is not None:
-            client_kwargs["verify_ssl"] = self.config.verify_ssl
-
-        if self.config.timeout is not None:
-            client_kwargs["timeout"] = self.config.timeout
-
-        # Handle HTTPS connections
-        if self.config.use_https and self.config.host and self.config.port:
-            # Use URL format for HTTPS connections
-            protocol = "https"
-            url = f"{protocol}://{self.config.host}:{self.config.port}"
-            self.client = QdrantClient(url=url, **client_kwargs)
-        else:
-            # Use traditional host/port/path format for HTTP or local connections
-            self.client = QdrantClient(
-                host=self.config.host, port=self.config.port, path=self.config.path, **client_kwargs
-            )
+        self.client = QdrantClient(
+            host=self.config.host, port=self.config.port, path=self.config.path, **client_kwargs
+        )
         self.create_collection()
 
     def create_collection(self) -> None:

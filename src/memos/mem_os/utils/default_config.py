@@ -228,11 +228,6 @@ def get_default_cube_config(
                         "distance_metric": "cosine",
                         # Optional: Add API key for authenticated Qdrant instances
                         # "api_key": kwargs.get("qdrant_api_key"),  # Add if using authenticated Qdrant
-                        # Optional: Enable HTTPS for secure connections
-                        # "use_https": kwargs.get("qdrant_use_https", False),  # Set to True for HTTPS
-                        # Optional: SSL configuration for HTTPS connections
-                        # "verify_ssl": kwargs.get("qdrant_verify_ssl"),  # Set to False to disable SSL verification
-                        # "timeout": kwargs.get("qdrant_timeout"),  # Connection timeout in seconds
                     },
                 },
                 "embedder": embedder_config,
