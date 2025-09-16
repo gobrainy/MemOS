@@ -33,8 +33,13 @@ class QdrantVecDB(BaseVecDB):
                 "(e.g., via Docker: https://qdrant.tech/documentation/quickstart/)."
             )
 
+        # Initialize QdrantClient with optional API key
+        client_kwargs = {}
+        if self.config.api_key is not None:
+            client_kwargs["api_key"] = self.config.api_key
+
         self.client = QdrantClient(
-            host=self.config.host, port=self.config.port, path=self.config.path
+            host=self.config.host, port=self.config.port, path=self.config.path, **client_kwargs
         )
         self.create_collection()
 

@@ -226,6 +226,8 @@ def get_default_cube_config(
                         "collection_name": kwargs.get("collection_name", f"{user_id}_collection"),
                         "vector_dimension": kwargs.get("vector_dimension", 3072),
                         "distance_metric": "cosine",
+                        # Optional: Add API key for authenticated Qdrant instances
+                        # "api_key": kwargs.get("qdrant_api_key"),  # Add if using authenticated Qdrant
                     },
                 },
                 "embedder": embedder_config,
