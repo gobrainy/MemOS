@@ -33,10 +33,17 @@ class QdrantVecDB(BaseVecDB):
                 "(e.g., via Docker: https://qdrant.tech/documentation/quickstart/)."
             )
 
-        # Initialize QdrantClient with optional API key and HTTPS support
+        # Initialize QdrantClient with optional API key, HTTPS, and SSL support
         client_kwargs = {}
         if self.config.api_key is not None:
             client_kwargs["api_key"] = self.config.api_key
+
+        # Add SSL configuration if provided
+        if self.config.verify_ssl is not None:
+            client_kwargs["verify_ssl"] = self.config.verify_ssl
+
+        if self.config.timeout is not None:
+            client_kwargs["timeout"] = self.config.timeout
 
         # Handle HTTPS connections
         if self.config.use_https and self.config.host and self.config.port:
