@@ -228,6 +228,8 @@ def get_default_cube_config(
                         "distance_metric": "cosine",
                         # Optional: Add API key for authenticated Qdrant instances
                         # "api_key": kwargs.get("qdrant_api_key"),  # Add if using authenticated Qdrant
+                        # Optional: Enable HTTPS for secure connections
+                        # "use_https": kwargs.get("qdrant_use_https", False),  # Set to True for HTTPS
                     },
                 },
                 "embedder": embedder_config,

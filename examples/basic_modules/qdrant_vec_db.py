@@ -15,6 +15,8 @@ config = VectorDBConfigFactory.model_validate(
             "path": str(settings.MEMOS_DIR / "qdrant"),
             # Optional: Add API key for authenticated Qdrant instances
             # "api_key": "${QDRANT_API_KEY}",  # Can also use environment variables
+            # Optional: Enable HTTPS for secure connections
+            # "use_https": True,  # Set to True for HTTPS connections
         },
     }
 )
