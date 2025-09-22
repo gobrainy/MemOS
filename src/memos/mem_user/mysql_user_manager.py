@@ -148,7 +148,11 @@ class MySQLUserManager:
             # Check if any users exist
             user_count = session.query(User).count()
             if user_count == 0:
-                root_user = User(user_id=user_id, user_name=user_id, role=UserRole.ROOT)
+                root_user = User(
+                    user_id=user_id,
+                    user_name=user_id,
+                    role=UserRole.ROOT.value,
+                )
                 session.add(root_user)
                 session.commit()
                 logger.info("Root user created successfully")
