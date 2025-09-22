@@ -268,6 +268,26 @@ class APIConfig:
         }
 
     @staticmethod
+    def get_postgres_config() -> dict[str, Any]:
+        """Get Postgres configuration."""
+        sslmode = os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", ""))
+        return {
+            "host": os.getenv("MOS_POSTGRES_HOST", os.getenv("POSTGRES_HOST", "localhost")),
+            "port": int(
+                os.getenv("MOS_POSTGRES_PORT", os.getenv("POSTGRES_PORT", "5432"))
+            ),
+            "username": os.getenv(
+                "MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")
+            ),
+            "password": os.getenv("MOS_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
+            "database": os.getenv(
+                "MOS_POSTGRES_DATABASE", os.getenv("POSTGRES_DATABASE", "memos_users")
+            ),
+            "schema": os.getenv("MOS_POSTGRES_SCHEMA", os.getenv("POSTGRES_SCHEMA", "memos")),
+            "sslmode": sslmode or None,
+        }
+
+    @staticmethod
     def get_scheduler_config() -> dict[str, Any]:
         """Get scheduler configuration."""
         return {
@@ -380,10 +400,19 @@ class APIConfig:
             config["enable_mem_scheduler"] = False
 
         # Add user manager configuration if enabled
-        if os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite").lower() == "mysql":
+        user_manager_backend = (
+            os.getenv("MOS_USER_MANAGER")
+            or os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite")
+        ).lower()
+        if user_manager_backend == "mysql":
             config["user_manager"] = {
                 "backend": "mysql",
                 "config": mysql_config,
+            }
+        elif user_manager_backend == "postgres":
+            config["user_manager"] = {
+                "backend": "postgres",
+                "config": APIConfig.get_postgres_config(),
             }
 
         return config
@@ -429,6 +458,7 @@ class APIConfig:
         qwen_config = APIConfig.qwen_config()
         vllm_config = APIConfig.vllm_config()
         mysql_config = APIConfig.get_mysql_config()
+        postgres_config = APIConfig.get_postgres_config()
         backend = os.getenv("MOS_CHAT_MODEL_PROVIDER", "openai")
         backend_model = {
             "openai": openai_config,
@@ -475,10 +505,20 @@ class APIConfig:
             config_dict["enable_mem_scheduler"] = False
 
         # Add user manager configuration if enabled
-        if os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite").lower() == "mysql":
+        user_manager_backend = (
+            os.getenv("MOS_USER_MANAGER")
+            or os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite")
+        ).lower()
+
+        if user_manager_backend == "mysql":
             config_dict["user_manager"] = {
                 "backend": "mysql",
                 "config": mysql_config,
+            }
+        elif user_manager_backend == "postgres":
+            config_dict["user_manager"] = {
+                "backend": "postgres",
+                "config": postgres_config,
             }
 
         default_config = MOSConfig(**config_dict)

@@ -2,6 +2,7 @@ from typing import Any, ClassVar
 
 from memos.configs.mem_user import UserManagerConfigFactory
 from memos.mem_user.mysql_user_manager import MySQLUserManager
+from memos.mem_user.postgres_user_manager import PostgresUserManager
 from memos.mem_user.user_manager import UserManager
 
 
@@ -11,12 +12,13 @@ class UserManagerFactory:
     backend_to_class: ClassVar[dict[str, Any]] = {
         "sqlite": UserManager,
         "mysql": MySQLUserManager,
+        "postgres": PostgresUserManager,
     }
 
     @classmethod
     def from_config(
         cls, config_factory: UserManagerConfigFactory
-    ) -> UserManager | MySQLUserManager:
+    ) -> UserManager | MySQLUserManager | PostgresUserManager:
         """Create a user manager instance from configuration.
 
         Args:
@@ -89,6 +91,35 @@ class UserManagerFactory:
                 "password": password,
                 "database": database,
                 "charset": charset,
+            },
+        )
+        return cls.from_config(config_factory)
+
+    @classmethod
+    def create_postgres(
+        cls,
+        user_id: str = "root",
+        host: str = "localhost",
+        port: int = 5432,
+        username: str = "postgres",
+        password: str = "",
+        database: str = "memos_users",
+        schema: str = "memos",
+        sslmode: str | None = None,
+    ) -> PostgresUserManager:
+        """Create Postgres user manager with specified configuration."""
+
+        config_factory = UserManagerConfigFactory(
+            backend="postgres",
+            config={
+                "user_id": user_id,
+                "host": host,
+                "port": port,
+                "username": username,
+                "password": password,
+                "database": database,
+                "schema": schema,
+                "sslmode": sslmode,
             },
         )
         return cls.from_config(config_factory)
