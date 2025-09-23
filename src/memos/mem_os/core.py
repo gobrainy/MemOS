@@ -74,11 +74,25 @@ class MOSCore:
             f"[MOSCore.__init__] user_manager initialized: {type(self.user_manager).__name__}"
         )
 
-        # Validate user exists
+        # Validate user exists (auto-provision if missing)
         if not self.user_manager.validate_user(self.user_id):
-            raise ValueError(
-                f"User '{self.user_id}' does not exist or is inactive. Please create user first."
+            print(
+                f"[MOSCore.__init__] user '{self.user_id}' missing; attempting auto-create"
             )
+            try:
+                bootstrap_role = UserRole.ROOT if self.user_id == "root" else UserRole.USER
+                self.user_manager.create_user(
+                    user_name=self.user_id,
+                    role=bootstrap_role,
+                    user_id=self.user_id,
+                )
+            except Exception as exc:
+                logger.error("Failed to auto-create user %s: %s", self.user_id, exc)
+
+            if not self.user_manager.validate_user(self.user_id):
+                raise ValueError(
+                    f"User '{self.user_id}' does not exist or is inactive. Please create user first."
+                )
 
         # Initialize mem_scheduler
         self._mem_scheduler_lock = Lock()
