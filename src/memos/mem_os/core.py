@@ -20,6 +20,7 @@ from memos.mem_scheduler.schemas.general_schemas import (
     QUERY_LABEL,
 )
 from memos.mem_scheduler.schemas.message_schemas import ScheduleMessageItem
+from memos.mem_user.factory import UserManagerFactory
 from memos.mem_user.user_manager import UserManager, UserRole
 from memos.memories.activation.item import ActivationMemoryItem
 from memos.memories.parametric.item import ParametricMemoryItem
@@ -56,7 +57,18 @@ class MOSCore:
         if user_manager is not None:
             self.user_manager = user_manager
         else:
-            self.user_manager = UserManager(user_id=self.user_id if self.user_id else "root")
+            try:
+                self.user_manager = UserManagerFactory.from_config(config.user_manager)
+            except Exception as exc:  # pragma: no cover - best effort fallback
+                logger.error(
+                    "Failed to initialize configured user manager (%s); falling back to SQLite",
+                    exc,
+                )
+                print(
+                    "Failed to initialize configured user manager (%s); falling back to SQLite",
+                    exc,
+                )
+                self.user_manager = UserManager(user_id=self.user_id if self.user_id else "root")
 
         # Validate user exists
         if not self.user_manager.validate_user(self.user_id):
@@ -635,7 +647,7 @@ class MOSCore:
             mem_cube_id (str, optional): The identifier of the MemCube to add the memories to.
                 If None, the default MemCube for the user is used.
             user_id (str, optional): The identifier of the user to add the memories to.
-                If None, the default user is used.                         
+                If None, the default user is used.
         Returns:
             list[str]: List of memory IDs that were added.
         """

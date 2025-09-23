@@ -13,7 +13,8 @@ from memos.api.middleware.request_context import RequestContextMiddleware
 from memos.api.product_models import MemoryCreateResponse
 from memos.configs.mem_os import MOSConfig
 from memos.mem_os.main import MOS
-from memos.mem_user.user_manager import UserManager, UserRole
+from memos.mem_user.factory import UserManagerFactory
+from memos.mem_user.user_manager import UserRole
 
 
 # Configure logging
@@ -59,14 +60,19 @@ def get_mos_instance():
         temp_mos.session_id = temp_config.session_id
         temp_mos.mem_cubes = {}
         temp_mos.chat_llm = None  # Will be initialized later
-        temp_mos.user_manager = UserManager()
+        temp_mos.user_manager = UserManagerFactory.from_config(temp_config.user_manager)
 
         # Create default user if it doesn't exist
-        if not temp_mos.user_manager.validate_user(temp_config.user_id):
-            temp_mos.user_manager.create_user(
-                user_name=temp_config.user_id, role=UserRole.USER, user_id=temp_config.user_id
-            )
-            logger.info(f"Created default user: {temp_config.user_id}")
+        try:
+            if not temp_mos.user_manager.validate_user(temp_config.user_id):
+                temp_mos.user_manager.create_user(
+                    user_name=temp_config.user_id,
+                    role=UserRole.USER,
+                    user_id=temp_config.user_id,
+                )
+                logger.info(f"Created default user: {temp_config.user_id}")
+        finally:
+            temp_mos.user_manager.close()
 
         # Now create the actual MOS instance
         MOS_INSTANCE = MOS(config=temp_config)
@@ -215,14 +221,19 @@ async def set_config(config: MOSConfig):
     global MOS_INSTANCE
 
     # Create a temporary user manager to check/create default user
-    temp_user_manager = UserManager()
+    temp_user_manager = UserManagerFactory.from_config(config.user_manager)
 
     # Create default user if it doesn't exist
-    if not temp_user_manager.validate_user(config.user_id):
-        temp_user_manager.create_user(
-            user_name=config.user_id, role=UserRole.USER, user_id=config.user_id
-        )
-        logger.info(f"Created default user: {config.user_id}")
+    try:
+        if not temp_user_manager.validate_user(config.user_id):
+            temp_user_manager.create_user(
+                user_name=config.user_id,
+                role=UserRole.USER,
+                user_id=config.user_id,
+            )
+            logger.info(f"Created default user: {config.user_id}")
+    finally:
+        temp_user_manager.close()
 
     # Now create the MOS instance
     MOS_INSTANCE = MOS(config=config)
