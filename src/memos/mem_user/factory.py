@@ -1,3 +1,5 @@
+import os
+
 from typing import Any, ClassVar
 
 from memos.configs.mem_user import UserManagerConfigFactory
@@ -34,8 +36,28 @@ class UserManagerFactory:
         if backend not in cls.backend_to_class:
             raise ValueError(f"Invalid user manager backend: {backend}")
 
-        user_manager_class = cls.backend_to_class[backend]
         config = config_factory.config
+        user_id = getattr(config, "user_id", "root")
+
+        env_backend = (
+            os.getenv("MOS_USER_MANAGER")
+            or os.getenv("MOS_USER_MANAGER_BACKEND")
+            or ""
+        ).lower()
+
+        if env_backend and env_backend in cls.backend_to_class:
+            backend = env_backend
+            if backend == "mysql":
+                env_kwargs = _load_mysql_env_config(user_id)
+            elif backend == "postgres":
+                env_kwargs = _load_postgres_env_config(user_id)
+            else:
+                env_kwargs = {"user_id": user_id}
+
+            config_cls = config_factory.backend_to_class[backend]
+            config = config_cls(**env_kwargs)
+
+        user_manager_class = cls.backend_to_class[backend]
 
         # Use model_dump() to convert Pydantic model to dict and unpack as kwargs
         print(f"[UserManagerFactory] creating backend='{backend}' with config={config}")
@@ -124,3 +146,34 @@ class UserManagerFactory:
             },
         )
         return cls.from_config(config_factory)
+
+
+def _load_mysql_env_config(user_id: str) -> dict[str, Any]:
+    return {
+        "user_id": user_id,
+        "host": os.getenv("MYSQL_HOST", "localhost"),
+        "port": int(os.getenv("MYSQL_PORT", "3306")),
+        "username": os.getenv("MYSQL_USERNAME", "root"),
+        "password": os.getenv("MYSQL_PASSWORD", ""),
+        "database": os.getenv("MYSQL_DATABASE", "memos_users"),
+        "charset": os.getenv("MYSQL_CHARSET", "utf8mb4"),
+    }
+
+
+def _load_postgres_env_config(user_id: str) -> dict[str, Any]:
+    return {
+        "user_id": user_id,
+        "host": os.getenv("MOS_POSTGRES_HOST", os.getenv("POSTGRES_HOST", "localhost")),
+        "port": int(os.getenv("MOS_POSTGRES_PORT", os.getenv("POSTGRES_PORT", "5432"))),
+        "username": os.getenv(
+            "MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")
+        ),
+        "password": os.getenv("MOS_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
+        "database": os.getenv(
+            "MOS_POSTGRES_DATABASE", os.getenv("POSTGRES_DATABASE", "memos_users")
+        ),
+        "schema": os.getenv("MOS_POSTGRES_SCHEMA", os.getenv("POSTGRES_SCHEMA", "memos")),
+        "sslmode": (
+            os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", "")) or None
+        ),
+    }
