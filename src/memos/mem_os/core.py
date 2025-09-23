@@ -70,6 +70,10 @@ class MOSCore:
                 )
                 self.user_manager = UserManager(user_id=self.user_id if self.user_id else "root")
 
+        print(
+            f"[MOSCore.__init__] user_manager initialized: {type(self.user_manager).__name__}"
+        )
+
         # Validate user exists
         if not self.user_manager.validate_user(self.user_id):
             raise ValueError(
@@ -427,6 +431,10 @@ class MOSCore:
         """
         if not user_name:
             user_name = user_id
+        print(
+            "[MOSCore.create_user] forwarding to user_manager.create_user with "
+            f"user_id={user_id}, user_name={user_name}, role={role}"
+        )
         return self.user_manager.create_user(user_name, role, user_id)
 
     def list_users(self) -> list:

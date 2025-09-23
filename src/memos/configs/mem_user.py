@@ -1,6 +1,6 @@
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from memos.configs.base import BaseConfig
 
@@ -34,13 +34,27 @@ class MySQLUserManagerConfig(BaseUserManagerConfig):
 class PostgresUserManagerConfig(BaseUserManagerConfig):
     """Postgres user manager configuration."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     host: str = Field(default="localhost", description="Postgres server host")
     port: int = Field(default=5432, description="Postgres server port")
     username: str = Field(default="postgres", description="Postgres username")
     password: str = Field(default="", description="Postgres password")
     database: str = Field(default="memos_users", description="Postgres database name")
-    schema: str = Field(default="memos", description="Postgres schema for the user manager")
+    schema_: str = Field(
+        default="memos",
+        alias="schema",
+        description="Postgres schema for the user manager",
+    )
     sslmode: str | None = Field(default=None, description="Postgres SSL mode")
+
+    @property
+    def schema(self) -> str:
+        return self.schema_
+
+    @schema.setter
+    def schema(self, value: str) -> None:
+        self.schema_ = value
 
 
 class UserManagerConfigFactory(BaseModel):

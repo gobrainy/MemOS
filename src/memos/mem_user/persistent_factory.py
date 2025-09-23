@@ -36,7 +36,7 @@ class PersistentUserManagerFactory:
         config = config_factory.config
 
         # Use model_dump() to convert Pydantic model to dict and unpack as kwargs
-        return user_manager_class(**config.model_dump())
+        return user_manager_class(**config.model_dump(by_alias=True))
 
     @classmethod
     def create_sqlite(
