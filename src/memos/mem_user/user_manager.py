@@ -162,10 +162,6 @@ class UserManager:
         Raises:
             ValueError: If user_name already exists.
         """
-        print(
-            "[SQLiteUserManager.create_user] attempting create with "
-            f"user_name={user_name}, user_id={user_id}, role={role}"
-        )
         session = self._get_session()
         try:
             # Check if user_name already exists

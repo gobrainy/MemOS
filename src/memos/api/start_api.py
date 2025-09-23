@@ -90,10 +90,6 @@ DEFAULT_CONFIG = {
 _USER_MANAGER_SECTION = _get_user_manager_env_config()
 if _USER_MANAGER_SECTION is not None:
     DEFAULT_CONFIG["user_manager"] = _USER_MANAGER_SECTION
-    print(
-        "[start_api] Loaded user manager config from environment: "
-        f"{_USER_MANAGER_SECTION['backend']}"
-    )
 
 # Initialize MOS instance with lazy initialization
 MOS_INSTANCE = None

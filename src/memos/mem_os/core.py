@@ -64,20 +64,13 @@ class MOSCore:
                     "Failed to initialize configured user manager (%s); falling back to SQLite",
                     exc,
                 )
-                print(
-                    "Failed to initialize configured user manager (%s); falling back to SQLite",
-                    exc,
-                )
                 self.user_manager = UserManager(user_id=self.user_id if self.user_id else "root")
-
-        print(
-            f"[MOSCore.__init__] user_manager initialized: {type(self.user_manager).__name__}"
-        )
 
         # Validate user exists (auto-provision if missing)
         if not self.user_manager.validate_user(self.user_id):
-            print(
-                f"[MOSCore.__init__] user '{self.user_id}' missing; attempting auto-create"
+            logger.info(
+                "User '%s' missing during MOS initialization; attempting auto-create",
+                self.user_id,
             )
             try:
                 bootstrap_role = UserRole.ROOT if self.user_id == "root" else UserRole.USER
@@ -445,10 +438,6 @@ class MOSCore:
         """
         if not user_name:
             user_name = user_id
-        print(
-            "[MOSCore.create_user] forwarding to user_manager.create_user with "
-            f"user_id={user_id}, user_name={user_name}, role={role}"
-        )
         return self.user_manager.create_user(user_name, role, user_id)
 
     def list_users(self) -> list:

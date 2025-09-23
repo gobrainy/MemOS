@@ -60,7 +60,6 @@ class UserManagerFactory:
         user_manager_class = cls.backend_to_class[backend]
 
         # Use model_dump() to convert Pydantic model to dict and unpack as kwargs
-        print(f"[UserManagerFactory] creating backend='{backend}' with config={config}")
         return user_manager_class(**config.model_dump(by_alias=True))
 
     @classmethod

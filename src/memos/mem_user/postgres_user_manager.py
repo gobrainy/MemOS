@@ -61,11 +61,6 @@ class PostgresUserManager(MySQLUserManager):
         self.engine = create_engine(connection_url, echo=False, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
-        print(
-            "[PostgresUserManager.__init__] connection params: "
-            f"host={host}, port={port}, database={database}, schema={schema}"
-        )
-
         def _set_search_path(dbapi_connection, _):
             with dbapi_connection.cursor() as cursor:
                 cursor.execute(f'SET search_path TO "{schema}"')
