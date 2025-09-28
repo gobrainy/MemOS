@@ -66,13 +66,12 @@ class OpenAILLM(BaseLLM):
             if ("invalid model" in msg or "model_not_found" in msg) and is_gpt5_family:
                 # Try Responses API for gpt-5 family
                 try:
-                    max_comp = (
-                        getattr(self.config, "max_completion_tokens", None)
-                        or getattr(self.config, "max_tokens", None)
+                    max_comp = getattr(self.config, "max_completion_tokens", None) or getattr(
+                        self.config, "max_tokens", None
                     )
-                    text_input = "\n".join([
-                        f"{m.get('role')}: {m.get('content')}" for m in messages
-                    ])
+                    text_input = "\n".join(
+                        [f"{m.get('role')}: {m.get('content')}" for m in messages]
+                    )
                     resp = self.client.responses.create(
                         model=model_name,
                         input=text_input,
@@ -86,9 +85,7 @@ class OpenAILLM(BaseLLM):
                     return response_content
                 except Exception as e2:
                     # Then try explicit fallback model
-                    logger.warning(
-                        f"Responses API fallback failed for '{model_name}': {e2!s}"
-                    )
+                    logger.warning(f"Responses API fallback failed for '{model_name}': {e2!s}")
                 # explicit fallback to configured fallback model
                 fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini").strip()
                 logger.warning(
@@ -167,13 +164,12 @@ class OpenAILLM(BaseLLM):
             if ("invalid model" in msg or "model_not_found" in msg) and is_gpt5_family:
                 # Non-stream fallback using Responses API (emit once)
                 try:
-                    max_comp = (
-                        getattr(self.config, "max_completion_tokens", None)
-                        or getattr(self.config, "max_tokens", None)
+                    max_comp = getattr(self.config, "max_completion_tokens", None) or getattr(
+                        self.config, "max_tokens", None
                     )
-                    text_input = "\n".join([
-                        f"{m.get('role')}: {m.get('content')}" for m in messages
-                    ])
+                    text_input = "\n".join(
+                        [f"{m.get('role')}: {m.get('content')}" for m in messages]
+                    )
                     resp = self.client.responses.create(
                         model=model_name,
                         input=text_input,
