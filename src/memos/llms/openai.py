@@ -1,3 +1,5 @@
+import os
+
 from collections.abc import Generator
 
 import openai
@@ -51,7 +53,29 @@ class OpenAILLM(BaseLLM):
             create_kwargs["max_tokens"] = self.config.max_tokens
             create_kwargs["top_p"] = self.config.top_p
 
-        response = self.client.chat.completions.create(**create_kwargs)
+        try:
+            response = self.client.chat.completions.create(**create_kwargs)
+        except Exception as e:  # Fallback on invalid model
+            msg = str(e).lower()
+            if "invalid model" in msg or "model_not_found" in msg:
+                fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini")
+                logger.warning(
+                    f"Model '{model_name}' not available. Falling back to '{fallback_model}'. Error: {e!s}"
+                )
+                # Reset kwargs for non-gpt5 model
+                fallback_kwargs = {
+                    "model": fallback_model,
+                    "messages": messages,
+                    "extra_body": self.config.extra_body,
+                    "temperature": self.config.temperature,
+                    "max_tokens": self.config.max_tokens,
+                }
+                try:
+                    response = self.client.chat.completions.create(**fallback_kwargs)
+                except Exception:
+                    raise
+            else:
+                raise
         logger.info(f"Response from OpenAI: {response.model_dump_json()}")
         response_content = response.choices[0].message.content
         if self.config.remove_think_prefix:
@@ -91,7 +115,26 @@ class OpenAILLM(BaseLLM):
         else:
             create_kwargs["max_tokens"] = self.config.max_tokens
 
-        response = self.client.chat.completions.create(**create_kwargs)
+        try:
+            response = self.client.chat.completions.create(**create_kwargs)
+        except Exception as e:
+            msg = str(e).lower()
+            if "invalid model" in msg or "model_not_found" in msg:
+                fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini")
+                logger.warning(
+                    f"Model '{model_name}' not available for streaming. Falling back to '{fallback_model}'. Error: {e!s}"
+                )
+                fallback_kwargs = {
+                    "model": fallback_model,
+                    "messages": messages,
+                    "stream": True,
+                    "extra_body": self.config.extra_body,
+                    "temperature": self.config.temperature,
+                    "max_tokens": self.config.max_tokens,
+                }
+                response = self.client.chat.completions.create(**fallback_kwargs)
+            else:
+                raise
 
         reasoning_started = False
 

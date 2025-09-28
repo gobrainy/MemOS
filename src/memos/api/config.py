@@ -443,7 +443,7 @@ class APIConfig:
                     "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-nano"),
                     "api_key": os.getenv("OPENAI_API_KEY", "sk-xxxxxx"),
                     "temperature": float(os.getenv("MOS_CHAT_TEMPERATURE", 0.7)),
-                    "api_base": os.getenv("OPENAI_API_BASE", "http://xxxxxx:3000/v1"),
+                    "api_base": os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1"),
                     "max_tokens": int(os.getenv("MOS_MAX_TOKENS", 1024)),
                     "max_completion_tokens": (
                         int(os.getenv("MOS_MAX_COMPLETION_TOKENS"))
