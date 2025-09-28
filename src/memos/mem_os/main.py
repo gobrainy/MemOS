@@ -2,6 +2,7 @@ import concurrent.futures
 import json
 import os
 
+from contextlib import suppress
 from typing import Any
 
 from memos.configs.mem_os import MOSConfig
@@ -64,16 +65,61 @@ class MOS(MOSCore):
         openai_api_key = os.getenv("OPENAI_API_KEY")
         openai_api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
         text_mem_type = os.getenv("MOS_TEXT_MEM_TYPE", "general_text")
+        # Optional overrides
+        model_name = os.getenv("MOS_CHAT_MODEL")
+        model_provider = os.getenv("MOS_CHAT_MODEL_PROVIDER")
+        temperature_str = os.getenv("MOS_CHAT_TEMPERATURE")
+        max_tokens_str = os.getenv("MOS_MAX_TOKENS")
+        max_completion_tokens_str = os.getenv("MOS_MAX_COMPLETION_TOKENS")
+        top_p_str = os.getenv("MOS_TOP_P")
+        top_k_str = os.getenv("MOS_TOP_K")
+        embed_model = os.getenv("MOS_EMBED_MODEL") or os.getenv("MOS_EMBEDDER_MODEL")
 
         if not openai_api_key:
             raise ValueError("OPENAI_API_KEY environment variable is required")
 
         logger.info(f"Auto-configuring MOS with text_mem_type: {text_mem_type}")
-        return get_default(
+
+        overrides: dict[str, object] = {}
+        if model_name:
+            overrides["model_name"] = model_name
+        if model_provider:
+            # Switch chat backend based on provider
+            # Supported: openai, huggingface, vllm, qwen, deepseek
+            overrides["chat_backend"] = model_provider
+        if temperature_str not in (None, ""):
+            with suppress(ValueError):
+                overrides["temperature"] = float(temperature_str)
+        if max_tokens_str not in (None, ""):
+            with suppress(ValueError):
+                overrides["max_tokens"] = int(max_tokens_str)
+        if max_completion_tokens_str not in (None, ""):
+            with suppress(ValueError):
+                overrides["max_completion_tokens"] = int(max_completion_tokens_str)
+        if top_p_str not in (None, ""):
+            with suppress(ValueError):
+                overrides["top_p"] = float(top_p_str)
+        if top_k_str not in (None, ""):
+            with suppress(ValueError):
+                overrides["top_k"] = int(top_k_str)
+
+        # If an embed model is provided, pass to defaults
+        if embed_model:
+            overrides["embedder_model"] = embed_model
+
+        mos_config, default_cube = get_default(
             openai_api_key=openai_api_key,
             openai_api_base=openai_api_base,
             text_mem_type=text_mem_type,
+            **overrides,
         )
+
+        # If chat backend override is provided, adjust in resulting config
+        chat_backend = overrides.get("chat_backend")
+        if chat_backend:
+            mos_config.chat_model.backend = chat_backend
+
+        return mos_config, default_cube
 
     @classmethod
     def simple(cls) -> "MOS":

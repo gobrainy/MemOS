@@ -89,7 +89,7 @@ class NaiveTextMemory(BaseTextMemory):
 
     def add(self, memories: list[TextualMemoryItem | dict[str, Any]]) -> list[str]:
         """Add memories.
-        
+
         Returns:
             List of memory IDs that were added.
         """

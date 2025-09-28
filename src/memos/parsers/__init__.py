@@ -1,5 +1,6 @@
-from .factory import ParserFactory
 from .base import BaseParser
+from .factory import ParserFactory
 from .markitdown import MarkItDownParser
 
-__all__ = ["ParserFactory", "BaseParser", "MarkItDownParser"]
+
+__all__ = ["BaseParser", "MarkItDownParser", "ParserFactory"]

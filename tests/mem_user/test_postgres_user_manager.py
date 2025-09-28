@@ -9,6 +9,7 @@ import time
 import uuid
 
 import pytest
+
 from sqlalchemy.exc import SQLAlchemyError
 
 from memos.mem_user.postgres_user_manager import PostgresUserManager
@@ -27,7 +28,9 @@ def _explicit_postgres_configured() -> bool:
     return any(os.getenv(key) for key in keys)
 
 
-def _start_temporary_postgres(config: dict[str, str | int | None]) -> tuple[dict[str, str | int | None], str]:
+def _start_temporary_postgres(
+    config: dict[str, str | int | None],
+) -> tuple[dict[str, str | int | None], str]:
     """Start a temporary Postgres container using Docker and update config."""
 
     if shutil.which("docker") is None:
@@ -64,7 +67,7 @@ def _start_temporary_postgres(config: dict[str, str | int | None]) -> tuple[dict
         "postgres:15",
     ]
 
-    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    subprocess.run(cmd, check=True, capture_output=True, text=True)
     return updated_config, container_name
 
 
@@ -104,7 +107,9 @@ def postgres_manager():
         try:
             config, container_name = _start_temporary_postgres(config)
         except RuntimeError as start_err:
-            pytest.skip(f"Postgres server is not available and Docker could not start it: {start_err}")
+            pytest.skip(
+                f"Postgres server is not available and Docker could not start it: {start_err}"
+            )
 
         deadline = time.time() + 30
         last_error: Exception | None = exc

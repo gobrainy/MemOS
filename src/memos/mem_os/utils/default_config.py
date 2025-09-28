@@ -43,7 +43,7 @@ def get_default_config(
 
     # Base OpenAI configuration
     openai_config = {
-        "model_name_or_path": kwargs.get("model_name", "gpt-4o-mini"),
+        "model_name_or_path": kwargs.get("model_name", "gpt-5-nano"),
         "temperature": kwargs.get("temperature", 0.8),
         "max_tokens": kwargs.get("max_tokens", 1024),
         "max_completion_tokens": kwargs.get("max_completion_tokens"),
@@ -158,7 +158,7 @@ def get_default_cube_config(
 
     # Base OpenAI configuration
     openai_config = {
-        "model_name_or_path": kwargs.get("model_name", "gpt-4o-mini"),
+        "model_name_or_path": kwargs.get("model_name", "gpt-5-nano"),
         "temperature": kwargs.get("temperature", 0.8),
         "max_tokens": kwargs.get("max_tokens", 1024),
         "max_completion_tokens": kwargs.get("max_completion_tokens"),
@@ -226,8 +226,6 @@ def get_default_cube_config(
                         "collection_name": kwargs.get("collection_name", f"{user_id}_collection"),
                         "vector_dimension": kwargs.get("vector_dimension", 3072),
                         "distance_metric": "cosine",
-                        # Optional: Add API key for authenticated Qdrant instances
-                        # "api_key": kwargs.get("qdrant_api_key"),  # Add if using authenticated Qdrant
                     },
                 },
                 "embedder": embedder_config,

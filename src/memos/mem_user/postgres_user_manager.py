@@ -12,6 +12,7 @@ from sqlalchemy.sql import quoted_name
 from memos.log import get_logger
 from memos.mem_user.mysql_user_manager import Base, MySQLUserManager
 
+
 logger = get_logger(__name__)
 
 _ALLOWED_SCHEMA_CHARS = set(string.ascii_letters + string.digits + "_")

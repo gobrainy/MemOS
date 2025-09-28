@@ -84,10 +84,10 @@ class UserManagerConfigFactory(BaseModel):
 
         port_value = config_dict.get("port")
         if isinstance(port_value, str):
-            try:
+            from contextlib import suppress
+
+            with suppress(ValueError):
                 config_dict["port"] = int(port_value)
-            except ValueError:
-                pass
 
         config_class = self.backend_to_class[self.backend]
         self.config = config_class(**config_dict)

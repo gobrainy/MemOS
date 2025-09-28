@@ -34,19 +34,19 @@ def load_and_modify_config(config_path: str) -> dict:
     openai_api_key = os.getenv("OPENAI_API_KEY")
     openai_base_url = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
 
-    # Modify config to use ollama for embedder and gpt-4o-mini for LLMs
+    # Modify config to use ollama for embedder and gpt-5-nano for LLMs
     if "embedder" in config:
         config["embedder"] = {
             "backend": "ollama",
             "config": {"model_name_or_path": "nomic-embed-text:latest"},
         }
 
-    # Modify LLM configs to use gpt-4o-mini
+    # Modify LLM configs to use gpt-5-nano
     if "llm" in config:
         config["llm"] = {
             "backend": "openai",
             "config": {
-                "model_name_or_path": "gpt-4o-mini",
+                "model_name_or_path": "gpt-5-nano",
                 "api_key": openai_api_key,
                 "api_base": openai_base_url,
                 "temperature": 0.5,
@@ -59,7 +59,7 @@ def load_and_modify_config(config_path: str) -> dict:
         config["extractor_llm"] = {
             "backend": "openai",
             "config": {
-                "model_name_or_path": "gpt-4o-mini",
+                "model_name_or_path": "gpt-5-nano",
                 "api_key": openai_api_key,
                 "api_base": openai_base_url,
                 "temperature": 0.5,
@@ -72,7 +72,7 @@ def load_and_modify_config(config_path: str) -> dict:
         config["dispatcher_llm"] = {
             "backend": "openai",
             "config": {
-                "model_name_or_path": "gpt-4o-mini",
+                "model_name_or_path": "gpt-5-nano",
                 "api_key": openai_api_key,
                 "api_base": openai_base_url,
                 "temperature": 0.5,
@@ -107,11 +107,11 @@ def setup_llm_config():
     # Get environment variables
     openai_api_key = os.getenv("OPENAI_API_KEY")
     openai_base_url = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
-    # Use ollama with gpt-4o-mini model
+    # Use ollama with gpt-5-nano model
     return LLMConfigFactory(
         backend="openai",
         config={
-            "model_name_or_path": "gpt-4o-mini",
+            "model_name_or_path": "gpt-5-nano",
             "api_key": openai_api_key,
             "api_base": openai_base_url,
             "temperature": 0.5,

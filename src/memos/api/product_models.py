@@ -116,10 +116,13 @@ class CubeShare(BaseRequest):
 class SimpleResponse(BaseResponse[None]):
     """Simple response model for operations without data return."""
 
+
 class MemoryCreateResponse(BaseResponse[dict]):
     """Response model for memory creation operations with memory IDs."""
-    
-    data: dict[str, list[str]] | None = Field(None, description="Response data containing memory IDs")
+
+    data: dict[str, list[str]] | None = Field(
+        None, description="Response data containing memory IDs"
+    )
 
 
 class UserRegisterResponse(BaseResponse[dict]):

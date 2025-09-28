@@ -15,8 +15,8 @@ from memos.api.product_models import (
     ChatRequest,
     GetMemoryRequest,
     MemoryCreateRequest,
-    MemoryResponse,
     MemoryCreateResponse,
+    MemoryResponse,
     SearchRequest,
     SearchResponse,
     SimpleResponse,
@@ -207,8 +207,7 @@ def create_memory(memory_req: MemoryCreateRequest):
             user_profile=memory_req.user_profile,
         )
         return MemoryCreateResponse(
-            message="Memory created successfully",
-            data={"memory_ids": memory_ids}
+            message="Memory created successfully", data={"memory_ids": memory_ids}
         )
 
     except ValueError as err:

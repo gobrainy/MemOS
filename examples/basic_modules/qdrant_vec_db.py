@@ -13,8 +13,6 @@ config = VectorDBConfigFactory.model_validate(
             "vector_dimension": 4,
             "distance_metric": "cosine",
             "path": str(settings.MEMOS_DIR / "qdrant"),
-            # Optional: Add API key for authenticated Qdrant instances
-            # "api_key": "${QDRANT_API_KEY}",  # Can also use environment variables
         },
     }
 )

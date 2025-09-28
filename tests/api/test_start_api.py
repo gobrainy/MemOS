@@ -287,7 +287,11 @@ def test_add_memory(mock_mos, memory_create, expected_calls):
     response = client.post("/memories", json=memory_create)
     assert response.status_code == 200
     expected_data = {"memory_ids": ["mem_123", "mem_456"]}
-    assert response.json() == {"code": 200, "message": "Memories added successfully", "data": expected_data}
+    assert response.json() == {
+        "code": 200,
+        "message": "Memories added successfully",
+        "data": expected_data,
+    }
     mock_mos.add.assert_called_once()
 
 

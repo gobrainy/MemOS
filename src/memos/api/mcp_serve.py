@@ -31,7 +31,7 @@ def load_default_config(user_id="default_user"):
 class MOSMCPStdioServer:
     def __init__(self):
         self.mcp = FastMCP("MOS Memory System")
-        config, cube = load_default_config()
+        config, _cube = load_default_config()
         self.mos_core = MOS(config=config)
         self._setup_tools()
 
@@ -132,7 +132,7 @@ class MOSMCPStdioServer:
             """
             try:
                 if not os.path.exists(cube_name_or_path):
-                    mos_config, cube_name_or_path = load_default_config(user_id=user_id)
+                    _mos_config, cube_name_or_path = load_default_config(user_id=user_id)
                 self.mos_core.register_mem_cube(
                     cube_name_or_path, mem_cube_id=cube_id, user_id=user_id
                 )

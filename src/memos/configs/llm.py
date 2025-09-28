@@ -33,6 +33,7 @@ class OpenAILLMConfig(BaseLLMConfig):
         ),
     )
 
+
 class QwenLLMConfig(BaseLLMConfig):
     api_key: str = Field(..., description="API key for DashScope (Qwen)")
     api_base: str = Field(

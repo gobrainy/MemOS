@@ -42,32 +42,25 @@ def _get_postgres_env_config() -> dict[str, Any]:
     return {
         "host": os.getenv("MOS_POSTGRES_HOST", os.getenv("POSTGRES_HOST", "localhost")),
         "port": int(os.getenv("MOS_POSTGRES_PORT", os.getenv("POSTGRES_PORT", "5432"))),
-        "username": os.getenv(
-            "MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")
-        ),
+        "username": os.getenv("MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")),
         "password": os.getenv("MOS_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
         "database": os.getenv(
             "MOS_POSTGRES_DATABASE", os.getenv("POSTGRES_DATABASE", "memos_users")
         ),
         "schema": os.getenv("MOS_POSTGRES_SCHEMA", os.getenv("POSTGRES_SCHEMA", "memos")),
-        "sslmode": (
-            os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", "")) or None
-        ),
+        "sslmode": (os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", "")) or None),
     }
 
 
 def _get_user_manager_env_config() -> dict[str, Any] | None:
-    backend = (
-        os.getenv("MOS_USER_MANAGER")
-        or os.getenv("MOS_USER_MANAGER_BACKEND")
-        or ""
-    ).lower()
+    backend = (os.getenv("MOS_USER_MANAGER") or os.getenv("MOS_USER_MANAGER_BACKEND") or "").lower()
 
     if backend == "mysql":
         return {"backend": "mysql", "config": _get_mysql_env_config()}
     if backend == "postgres":
         return {"backend": "postgres", "config": _get_postgres_env_config()}
     return None
+
 
 # Default configuration
 DEFAULT_CONFIG = {

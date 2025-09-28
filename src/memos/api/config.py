@@ -20,10 +20,19 @@ class APIConfig:
     @staticmethod
     def get_openai_config() -> dict[str, Any]:
         """Get OpenAI configuration."""
+        mct_str = os.getenv("MOS_MAX_COMPLETION_TOKENS")
+        mct_val = None
+        if mct_str is not None and mct_str != "":
+            try:
+                mct_val = int(mct_str)
+            except ValueError:
+                mct_val = None
+
         return {
-            "model_name_or_path": os.getenv("MOS_OPENAI_MODEL", "gpt-4o-mini"),
+            "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-nano"),
             "temperature": float(os.getenv("MOS_CHAT_TEMPERATURE", "0.8")),
             "max_tokens": int(os.getenv("MOS_MAX_TOKENS", "1024")),
+            "max_completion_tokens": mct_val,
             "top_p": float(os.getenv("MOS_TOP_P", "0.9")),
             "top_k": int(os.getenv("MOS_TOP_K", "50")),
             "remove_think_prefix": True,
@@ -124,7 +133,10 @@ class APIConfig:
                 "config": {
                     "provider": os.getenv("MOS_EMBEDDER_PROVIDER", "openai"),
                     "api_key": os.getenv("MOS_EMBEDDER_API_KEY", "sk-xxxx"),
-                    "model_name_or_path": os.getenv("MOS_EMBEDDER_MODEL", "text-embedding-3-large"),
+                    "model_name_or_path": (
+                        os.getenv("MOS_EMBED_MODEL")
+                        or os.getenv("MOS_EMBEDDER_MODEL", "text-embedding-3-large")
+                    ),
                     "base_url": os.getenv("MOS_EMBEDDER_API_BASE", "http://openai.com"),
                 },
             }
@@ -132,8 +144,9 @@ class APIConfig:
             return {
                 "backend": "ollama",
                 "config": {
-                    "model_name_or_path": os.getenv(
-                        "MOS_EMBEDDER_MODEL", "nomic-embed-text:latest"
+                    "model_name_or_path": (
+                        os.getenv("MOS_EMBED_MODEL")
+                        or os.getenv("MOS_EMBEDDER_MODEL", "nomic-embed-text:latest")
                     ),
                     "api_base": os.getenv("OLLAMA_API_BASE", "http://localhost:11434"),
                 },
@@ -273,9 +286,7 @@ class APIConfig:
         sslmode = os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", ""))
         return {
             "host": os.getenv("MOS_POSTGRES_HOST", os.getenv("POSTGRES_HOST", "localhost")),
-            "port": int(
-                os.getenv("MOS_POSTGRES_PORT", os.getenv("POSTGRES_PORT", "5432"))
-            ),
+            "port": int(os.getenv("MOS_POSTGRES_PORT", os.getenv("POSTGRES_PORT", "5432"))),
             "username": os.getenv(
                 "MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")
             ),
@@ -401,8 +412,7 @@ class APIConfig:
 
         # Add user manager configuration if enabled
         user_manager_backend = (
-            os.getenv("MOS_USER_MANAGER")
-            or os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite")
+            os.getenv("MOS_USER_MANAGER") or os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite")
         ).lower()
         if user_manager_backend == "mysql":
             config["user_manager"] = {
@@ -430,11 +440,16 @@ class APIConfig:
             "chat_model": {
                 "backend": os.getenv("MOS_CHAT_MODEL_PROVIDER", "openai"),
                 "config": {
-                    "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-4o-mini"),
+                    "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-nano"),
                     "api_key": os.getenv("OPENAI_API_KEY", "sk-xxxxxx"),
                     "temperature": float(os.getenv("MOS_CHAT_TEMPERATURE", 0.7)),
                     "api_base": os.getenv("OPENAI_API_BASE", "http://xxxxxx:3000/v1"),
                     "max_tokens": int(os.getenv("MOS_MAX_TOKENS", 1024)),
+                    "max_completion_tokens": (
+                        int(os.getenv("MOS_MAX_COMPLETION_TOKENS"))
+                        if os.getenv("MOS_MAX_COMPLETION_TOKENS") not in (None, "")
+                        else None
+                    ),
                     "top_p": float(os.getenv("MOS_TOP_P", 0.9)),
                     "top_k": int(os.getenv("MOS_TOP_K", 50)),
                     "remove_think_prefix": True,
@@ -506,8 +521,7 @@ class APIConfig:
 
         # Add user manager configuration if enabled
         user_manager_backend = (
-            os.getenv("MOS_USER_MANAGER")
-            or os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite")
+            os.getenv("MOS_USER_MANAGER") or os.getenv("MOS_USER_MANAGER_BACKEND", "sqlite")
         ).lower()
 
         if user_manager_backend == "mysql":

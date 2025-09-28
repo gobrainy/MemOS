@@ -24,17 +24,13 @@ def _load_postgres_env_config(user_id: str) -> dict[str, Any]:
         "user_id": user_id,
         "host": os.getenv("MOS_POSTGRES_HOST", os.getenv("POSTGRES_HOST", "localhost")),
         "port": int(os.getenv("MOS_POSTGRES_PORT", os.getenv("POSTGRES_PORT", "5432"))),
-        "username": os.getenv(
-            "MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")
-        ),
+        "username": os.getenv("MOS_POSTGRES_USERNAME", os.getenv("POSTGRES_USERNAME", "postgres")),
         "password": os.getenv("MOS_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
         "database": os.getenv(
             "MOS_POSTGRES_DATABASE", os.getenv("POSTGRES_DATABASE", "memos_users")
         ),
         "schema": os.getenv("MOS_POSTGRES_SCHEMA", os.getenv("POSTGRES_SCHEMA", "memos")),
-        "sslmode": (
-            os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", "")) or None
-        ),
+        "sslmode": (os.getenv("MOS_POSTGRES_SSLMODE", os.getenv("POSTGRES_SSLMODE", "")) or None),
     }
 
 

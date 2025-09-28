@@ -78,7 +78,7 @@ class Searcher:
         else:
             logger.debug(f"[SEARCH] Received info dict: {info}")
 
-        parsed_goal, query_embedding, context, query = self._parse_task(query, info, mode)
+        parsed_goal, query_embedding, _context, query = self._parse_task(query, info, mode)
         results = self._retrieve_paths(
             query, parsed_goal, query_embedding, info, top_k, mode, memory_type
         )
