@@ -6,7 +6,7 @@ This document outlines the evaluation process for OpenAI's Memory feature using 
 
 Since OpenAI's [Memory feature](https://openai.com/index/memory-and-new-controls-for-chatgpt/) does not have a public API, the evaluation requires a manual process. Dialogues from the LoCoMo dataset are formatted and manually input into the ChatGPT web interface. The resulting memories are then retrieved from the account's memory management page and saved locally.
 
-To evaluate the quality of these memories, we will use the `gpt-5-mini` model via API. The model will be asked questions from the LoCoMo dataset, and the full history of memories for the relevant conversation will be provided as context. This simulates a perfect memory retrieval system, giving the model the best possible information to answer the question.
+To evaluate the quality of these memories, we will use the `gpt-4o-mini` model via API. The model will be asked questions from the LoCoMo dataset, and the full history of memories for the relevant conversation will be provided as context. This simulates a perfect memory retrieval system, giving the model the best possible information to answer the question.
 
 ## 2. Step-by-Step Workflow
 

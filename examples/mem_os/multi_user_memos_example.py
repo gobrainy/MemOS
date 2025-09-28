@@ -12,7 +12,7 @@ from memos.mem_os.product import MOSProduct
 
 def get_config(user_name):
     openapi_config = {
-        "model_name_or_path": "gpt-5-mini",
+        "model_name_or_path": "gpt-4o-mini",
         "temperature": 0.8,
         "max_tokens": 1024,
         "top_p": 0.9,
