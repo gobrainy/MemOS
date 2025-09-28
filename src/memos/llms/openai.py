@@ -19,6 +19,12 @@ class OpenAILLM(BaseLLM):
 
     def __init__(self, config: OpenAILLMConfig):
         self.config = config
+        # Sanitize model name
+        try:
+            if isinstance(self.config.model_name_or_path, str):
+                self.config.model_name_or_path = self.config.model_name_or_path.strip()
+        except Exception:
+            pass
         self.client = openai.Client(api_key=config.api_key, base_url=config.api_base)
 
     def generate(self, messages: MessageList) -> str:
@@ -55,9 +61,48 @@ class OpenAILLM(BaseLLM):
 
         try:
             response = self.client.chat.completions.create(**create_kwargs)
-        except Exception as e:  # Fallback on invalid model
+        except Exception as e:  # Fallbacks on invalid model / unsupported endpoint
             msg = str(e).lower()
-            if "invalid model" in msg or "model_not_found" in msg:
+            if ("invalid model" in msg or "model_not_found" in msg) and is_gpt5_family:
+                # Try Responses API for gpt-5 family
+                try:
+                    max_comp = (
+                        getattr(self.config, "max_completion_tokens", None)
+                        or getattr(self.config, "max_tokens", None)
+                    )
+                    text_input = "\n".join([
+                        f"{m.get('role')}: {m.get('content')}" for m in messages
+                    ])
+                    resp = self.client.responses.create(
+                        model=model_name,
+                        input=text_input,
+                        max_output_tokens=max_comp,
+                    )
+                    response_content = getattr(resp, "output_text", None) or (
+                        resp.output[0].content[0].text if getattr(resp, "output", None) else ""
+                    )
+                    if self.config.remove_think_prefix:
+                        return remove_thinking_tags(response_content)
+                    return response_content
+                except Exception as e2:
+                    # Then try explicit fallback model
+                    logger.warning(
+                        f"Responses API fallback failed for '{model_name}': {e2!s}"
+                    )
+                # explicit fallback to configured fallback model
+                fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini").strip()
+                logger.warning(
+                    f"Model '{model_name}' not available. Falling back to '{fallback_model}'. Error: {e!s}"
+                )
+                fallback_kwargs = {
+                    "model": fallback_model,
+                    "messages": messages,
+                    "extra_body": self.config.extra_body,
+                    "temperature": self.config.temperature,
+                    "max_tokens": self.config.max_tokens,
+                }
+                response = self.client.chat.completions.create(**fallback_kwargs)
+            elif "invalid model" in msg or "model_not_found" in msg:
                 fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini")
                 logger.warning(
                     f"Model '{model_name}' not available. Falling back to '{fallback_model}'. Error: {e!s}"
@@ -119,7 +164,46 @@ class OpenAILLM(BaseLLM):
             response = self.client.chat.completions.create(**create_kwargs)
         except Exception as e:
             msg = str(e).lower()
-            if "invalid model" in msg or "model_not_found" in msg:
+            if ("invalid model" in msg or "model_not_found" in msg) and is_gpt5_family:
+                # Non-stream fallback using Responses API (emit once)
+                try:
+                    max_comp = (
+                        getattr(self.config, "max_completion_tokens", None)
+                        or getattr(self.config, "max_tokens", None)
+                    )
+                    text_input = "\n".join([
+                        f"{m.get('role')}: {m.get('content')}" for m in messages
+                    ])
+                    resp = self.client.responses.create(
+                        model=model_name,
+                        input=text_input,
+                        max_output_tokens=max_comp,
+                    )
+                    response_content = getattr(resp, "output_text", None) or (
+                        resp.output[0].content[0].text if getattr(resp, "output", None) else ""
+                    )
+                    if response_content:
+                        yield response_content
+                        return
+                except Exception as e2:
+                    logger.warning(
+                        f"Responses API streaming fallback failed for '{model_name}': {e2!s}"
+                    )
+                # Fall back to non-stream on fallback model
+                fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini").strip()
+                logger.warning(
+                    f"Model '{model_name}' not available for streaming. Falling back to '{fallback_model}'. Error: {e!s}"
+                )
+                fallback_kwargs = {
+                    "model": fallback_model,
+                    "messages": messages,
+                    "stream": True,
+                    "extra_body": self.config.extra_body,
+                    "temperature": self.config.temperature,
+                    "max_tokens": self.config.max_tokens,
+                }
+                response = self.client.chat.completions.create(**fallback_kwargs)
+            elif "invalid model" in msg or "model_not_found" in msg:
                 fallback_model = os.getenv("MOS_FALLBACK_MODEL", "gpt-4o-mini")
                 logger.warning(
                     f"Model '{model_name}' not available for streaming. Falling back to '{fallback_model}'. Error: {e!s}"

@@ -29,7 +29,7 @@ class APIConfig:
                 mct_val = None
 
         return {
-            "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-nano"),
+            "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-mini"),
             "temperature": float(os.getenv("MOS_CHAT_TEMPERATURE", "0.8")),
             "max_tokens": int(os.getenv("MOS_MAX_TOKENS", "1024")),
             "max_completion_tokens": mct_val,
@@ -440,7 +440,7 @@ class APIConfig:
             "chat_model": {
                 "backend": os.getenv("MOS_CHAT_MODEL_PROVIDER", "openai"),
                 "config": {
-                    "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-nano"),
+                    "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-5-mini"),
                     "api_key": os.getenv("OPENAI_API_KEY", "sk-xxxxxx"),
                     "temperature": float(os.getenv("MOS_CHAT_TEMPERATURE", 0.7)),
                     "api_base": os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1"),

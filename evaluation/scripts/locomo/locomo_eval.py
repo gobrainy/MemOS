@@ -78,7 +78,7 @@ async def locomo_grader(llm_client, question: str, gold_answer: str, response: s
     """
 
     response = await llm_client.chat.completions.create(
-        model="gpt-5-nano",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": accuracy_prompt},

@@ -27,7 +27,7 @@ with open("evaluation/data/locomo/locomo10.json", encoding="utf-8") as f:
 db_name = "shared-db-locomo-case"
 
 openapi_config = {
-    "model_name_or_path": "gpt-5-nano",
+    "model_name_or_path": "gpt-5-mini",
     "temperature": 0.8,
     "max_tokens": 1024,
     "api_key": "your-api-key-here",

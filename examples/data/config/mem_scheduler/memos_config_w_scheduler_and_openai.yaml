@@ -12,7 +12,7 @@ mem_reader:
     llm:
       backend: "openai"
       config:
-        model_name_or_path: "gpt-5-nano"
+        model_name_or_path: "gpt-5-mini"
         temperature: 0.8
         max_tokens: 4096
         top_p: 0.9

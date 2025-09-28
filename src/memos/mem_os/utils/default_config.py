@@ -43,7 +43,7 @@ def get_default_config(
 
     # Base OpenAI configuration
     openai_config = {
-        "model_name_or_path": kwargs.get("model_name", "gpt-5-nano"),
+        "model_name_or_path": kwargs.get("model_name", "gpt-5-mini"),
         "temperature": kwargs.get("temperature", 0.8),
         "max_tokens": kwargs.get("max_tokens", 1024),
         "max_completion_tokens": kwargs.get("max_completion_tokens"),
@@ -158,7 +158,7 @@ def get_default_cube_config(
 
     # Base OpenAI configuration
     openai_config = {
-        "model_name_or_path": kwargs.get("model_name", "gpt-5-nano"),
+        "model_name_or_path": kwargs.get("model_name", "gpt-5-mini"),
         "temperature": kwargs.get("temperature", 0.8),
         "max_tokens": kwargs.get("max_tokens", 1024),
         "max_completion_tokens": kwargs.get("max_completion_tokens"),
