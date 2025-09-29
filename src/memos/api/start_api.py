@@ -72,11 +72,19 @@ DEFAULT_CONFIG = {
     "chat_model": {
         "backend": os.getenv("MOS_CHAT_MODEL_PROVIDER", "openai"),
         "config": {
-            "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-3.5-turbo"),
+            # Use a currently valid default model
+            "model_name_or_path": os.getenv("MOS_CHAT_MODEL", "gpt-4o-mini"),
             "api_key": os.getenv("OPENAI_API_KEY", "apikey"),
             "temperature": float(os.getenv("MOS_CHAT_TEMPERATURE", "0.7")),
             "api_base": os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1"),
         },
+    },
+    # Provide default embedder-related envs for downstream config helpers
+    "embedder_defaults": {
+        "MOS_EMBED_MODEL": os.getenv("MOS_EMBED_MODEL", "text-embedding-3-small"),
+        "MOS_EMBEDDER_BACKEND": os.getenv("MOS_EMBEDDER_BACKEND", "universal_api"),
+        "MOS_EMBEDDER_PROVIDER": os.getenv("MOS_EMBEDDER_PROVIDER", "openai"),
+        "MOS_EMBEDDER_API_BASE": os.getenv("MOS_EMBEDDER_API_BASE", "https://api.openai.com/v1"),
     },
 }
 
